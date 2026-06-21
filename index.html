@@ -520,11 +520,102 @@ function nextSlot(round, mi) {
 }
 
 // ════════════════════════════════════════════════════════════════════════
-// GROUP STAGE — placeholder until Step 2
+// GROUP STAGE
 // ════════════════════════════════════════════════════════════════════════
 function renderGroups() {
-  document.getElementById('groupsGrid').innerHTML =
-    '<p style="color:var(--muted);padding:1rem">Group stage coming in Step 2…</p>';
+  const grid = document.getElementById('groupsGrid');
+  grid.innerHTML = '';
+  GROUPS.forEach(g => grid.appendChild(buildGroupCard(g)));
+}
+
+function buildGroupCard(g) {
+  const r = ranked(g);
+  const card = document.createElement('div');
+  card.className = 'group-card';
+
+  const hdr = document.createElement('div');
+  hdr.className = 'group-header';
+  hdr.innerHTML = `<strong>GROUP ${g}</strong><span>drag to reorder</span>`;
+  card.appendChild(hdr);
+
+  const list = document.createElement('div');
+  list.className = 'team-list';
+
+  r.forEach((name, i) => {
+    const t = teamByName(name);
+    const row = document.createElement('div');
+    row.className = 'team-item';
+    row.draggable = true;
+    row.dataset.g = g;
+    row.dataset.i = i;
+    row.dataset.n = name;
+    row.innerHTML = `
+      <span class="rank-badge rank-${i + 1}">${i + 1}</span>
+      <span class="team-flag">${t.f}</span>
+      <span class="team-name">${name}</span>
+      <div class="move-btns">
+        <button class="move-btn" ${i === 0 ? 'disabled' : ''}
+                onclick="mv('${g}',${i},-1)" title="Move up">▲</button>
+        <button class="move-btn" ${i === r.length - 1 ? 'disabled' : ''}
+                onclick="mv('${g}',${i},1)" title="Move down">▼</button>
+      </div>`;
+
+    row.addEventListener('dragstart', e => {
+      _drag = e.currentTarget;
+      e.currentTarget.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    row.addEventListener('dragover', e => {
+      e.preventDefault();
+      if (e.currentTarget !== _drag) {
+        clearDragOver();
+        e.currentTarget.classList.add('drag-over');
+      }
+    });
+    row.addEventListener('dragleave', e => e.currentTarget.classList.remove('drag-over'));
+    row.addEventListener('drop', onDrop);
+    row.addEventListener('dragend', () => {
+      clearDragOver();
+      if (_drag) _drag.classList.remove('dragging');
+      _drag = null;
+    });
+
+    list.appendChild(row);
+  });
+
+  card.appendChild(list);
+  return card;
+}
+
+let _drag = null;
+function clearDragOver() {
+  document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+}
+
+function onDrop(e) {
+  e.preventDefault();
+  const tgt = e.currentTarget;
+  tgt.classList.remove('drag-over');
+  if (!_drag || _drag === tgt) return;
+  const g = _drag.dataset.g;
+  if (tgt.dataset.g !== g) return;          // cross-group drops ignored
+  const from = +_drag.dataset.i;
+  const to   = +tgt.dataset.i;
+  const r = [...ranked(g)];
+  r.splice(to, 0, r.splice(from, 1)[0]);
+  S.rankings[g] = r;
+  save();
+  renderGroups();
+}
+
+function mv(g, i, dir) {
+  const r = [...ranked(g)];
+  const j = i + dir;
+  if (j < 0 || j >= r.length) return;
+  [r[i], r[j]] = [r[j], r[i]];
+  S.rankings[g] = r;
+  save();
+  renderGroups();
 }
 
 // ════════════════════════════════════════════════════════════════════════
