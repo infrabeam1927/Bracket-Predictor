@@ -671,12 +671,172 @@ function doBracket() {
 }
 
 // ════════════════════════════════════════════════════════════════════════
-// BRACKET — placeholder until Steps 4 & 5
+// BRACKET GENERATION
 // ════════════════════════════════════════════════════════════════════════
-function renderBracket()  { /* Step 4 */ }
-function regenBracket()   { /* Step 4 */ }
-function undoChampion()   { /* Step 5 */ }
-function resetAll()       { /* Step 5 */ }
+function genBracket() {
+  S.bracket = newBracket();
+
+  R32_SEEDS.forEach((seeds, i) => {
+    const m   = S.bracket.r32[i];
+    const t1n = resolveSlot(seeds[0]);
+    const t2n = resolveSlot(seeds[1]);
+    if (t1n) { const t = teamByName(t1n); m.t1 = t1n; m.f1 = t.f; }
+    if (t2n) { const t = teamByName(t2n); m.t2 = t2n; m.f2 = t.f; }
+  });
+
+  S.ready = true;
+  save();
+}
+
+function regenBracket() {
+  if (!confirm('Regenerate the bracket from your current group rankings?\nAll knockout picks will be cleared.')) return;
+  genBracket();
+  renderBracket();
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// BRACKET RENDERING
+// ════════════════════════════════════════════════════════════════════════
+function renderBracket() {
+  const el = document.getElementById('bracketEl');
+  el.innerHTML = '';
+
+  ROUNDS.forEach(r => {
+    const col = document.createElement('div');
+    col.className = 'round-col';
+
+    const lbl = document.createElement('div');
+    lbl.className = 'round-label';
+    lbl.textContent = ROUND_LABELS[r];
+    col.appendChild(lbl);
+
+    const wrap = document.createElement('div');
+    wrap.className = 'matches-wrap';
+    S.bracket[r].forEach((m, i) => wrap.appendChild(buildMatch(r, i, m)));
+    col.appendChild(wrap);
+
+    el.appendChild(col);
+  });
+
+  updateChampionBanner();
+}
+
+function buildMatch(r, i, m) {
+  const box = document.createElement('div');
+  box.className = 'match-box';
+  box.appendChild(buildTeamRow(r, i, m, 0));
+  box.appendChild(buildTeamRow(r, i, m, 1));
+  return box;
+}
+
+function buildTeamRow(r, i, m, slot) {
+  const name  = slot === 0 ? m.t1 : m.t2;
+  const flag  = slot === 0 ? m.f1 : m.f2;
+  const isTbd  = !name;
+  const isWon  = !!m.w && m.w === name;
+  const isLost = !!m.w && !isTbd && m.w !== name;
+
+  const row = document.createElement('div');
+  row.className = `match-team${isTbd ? ' tbd' : ''}${isWon ? ' won' : ''}${isLost ? ' lost' : ''}`;
+  row.innerHTML  = `<span class="t-flag">${flag || '·'}</span>`
+                 + `<span class="t-name">${name || 'TBD'}</span>`
+                 + `<span class="t-crown">🏆</span>`;
+
+  if (!isTbd) {
+    if (isWon) {
+      row.title   = 'Click to undo this pick';
+      row.onclick = () => { clearDown(r, i); m.w = null; save(); renderBracket(); };
+    } else if (m.t1 && m.t2) {
+      row.title   = 'Click to pick as winner';
+      row.onclick = () => pickWin(r, i, name, flag);
+    }
+  }
+  return row;
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// WINNER PICKING  &  CASCADE LOGIC
+// ════════════════════════════════════════════════════════════════════════
+
+// clearDown removes the current winner of match (round, mi) from all
+// downstream slots, recursively cascading if that winner had already
+// advanced further and won subsequent matches.
+function clearDown(round, mi) {
+  const m   = S.bracket[round][mi];
+  const old = m.w;
+  if (!old) return;
+
+  const ns = nextSlot(round, mi);
+  if (!ns) return;
+
+  const nm = S.bracket[ns.round][ns.idx];
+  if (ns.slot === 0) { nm.t1 = null; nm.f1 = null; }
+  else               { nm.t2 = null; nm.f2 = null; }
+
+  // If the downstream match had also picked this team as winner, cascade
+  if (nm.w === old) { clearDown(ns.round, ns.idx); nm.w = null; }
+}
+
+function pickWin(round, mi, name, flag) {
+  const m = S.bracket[round][mi];
+
+  // Clear old winner's downstream path before placing the new one
+  if (m.w) clearDown(round, mi);
+
+  m.w = name;
+
+  const ns = nextSlot(round, mi);
+  if (ns) {
+    const nm = S.bracket[ns.round][ns.idx];
+    if (ns.slot === 0) { nm.t1 = name; nm.f1 = flag; }
+    else               { nm.t2 = name; nm.f2 = flag; }
+  }
+
+  save();
+  renderBracket();
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// CHAMPION BANNER
+// ════════════════════════════════════════════════════════════════════════
+function updateChampionBanner() {
+  const w      = S.bracket.fin[0].w;
+  const banner = document.getElementById('champBanner');
+  if (w) {
+    const ct = teamByName(w);
+    document.getElementById('champFlag').textContent = ct.f;
+    document.getElementById('champName').textContent = ct.n;
+    banner.classList.add('show');
+  } else {
+    banner.classList.remove('show');
+  }
+}
+
+function undoChampion() {
+  const fin = S.bracket.fin[0];
+  if (!fin.w) return;
+  clearDown('fin', 0);
+  fin.w = null;
+  save();
+  renderBracket();
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// RESET
+// ════════════════════════════════════════════════════════════════════════
+function resetAll() {
+  if (!confirm('Reset everything? All rankings, picks, and bracket results will return to defaults.')) return;
+  S = defaultState();
+  save();
+  renderGroups();
+  // Clear third-place counter display without fully rendering the tab
+  document.getElementById('thirdCountEl').innerHTML = '0 <small>/ 8 selected</small>';
+  document.getElementById('thirdMsgEl').textContent = '';
+  document.getElementById('genBtn').disabled = true;
+  document.getElementById('champBanner').classList.remove('show');
+  document.getElementById('bracketEl').innerHTML = '';
+  goTab('groups');
+}
 
 // ── Boot ─────────────────────────────────────────────────────────────────
 load();
