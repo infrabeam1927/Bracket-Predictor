@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026 FIFA World Cup Bracket Predictor</title>
+<style>
+/* ── Design tokens ──────────────────────────────────────────────────── */
+:root {
+  --bg:        #0a0e1a;
+  --surface:   #111624;
+  --card:      #1a2035;
+  --card2:     #1e2640;
+  --border:    #2a334d;
+  --gold:      #c9a227;
+  --gold2:     #e8c547;
+  --text:      #e0e4f0;
+  --muted:     #6b7a99;
+  --green:     #27ae60;
+  --green2:    #2ecc71;
+  --blue:      #2980b9;
+  --red:       #c0392b;
+}
+
+/* ── Reset ──────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────── */
+header {
+  background: linear-gradient(135deg, #0d1520 0%, #162030 100%);
+  border-bottom: 2px solid var(--gold);
+  padding: .9rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.hdr-trophy { font-size: 2.2rem; line-height: 1; flex-shrink: 0; }
+header h1   { font-size: 1.35rem; font-weight: 700; color: var(--gold); letter-spacing: .03em; }
+header p    { font-size: .8rem; color: var(--muted); margin-top: .15rem; }
+
+/* ── Tab navigation ─────────────────────────────────────────────────── */
+nav {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  padding: 0 1rem;
+  overflow-x: auto;
+  gap: .15rem;
+}
+nav button {
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: var(--muted);
+  padding: .8rem 1.25rem;
+  cursor: pointer;
+  font-size: .85rem;
+  font-weight: 600;
+  letter-spacing: .04em;
+  white-space: nowrap;
+  transition: color .15s, border-color .15s;
+}
+nav button:hover          { color: var(--text); }
+nav button.active         { color: var(--gold); border-bottom-color: var(--gold); }
+nav button:focus-visible  { outline: 2px solid var(--gold); outline-offset: -2px; }
+
+/* ── Tab panels ─────────────────────────────────────────────────────── */
+.tab         { display: none; }
+.tab.active  { display: block; }
+
+/* ── Layout helpers ─────────────────────────────────────────────────── */
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+.section-title { font-size: 1.05rem; font-weight: 700; margin-bottom: .25rem; }
+.section-sub   { font-size: .82rem; color: var(--muted); margin-bottom: 1.25rem; line-height: 1.5; }
+
+/* ── Shared buttons ─────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .55rem 1.3rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: .85rem;
+  font-weight: 600;
+  letter-spacing: .03em;
+  transition: background .15s, opacity .15s;
+}
+.btn-gold              { background: var(--gold); color: #000; }
+.btn-gold:hover        { background: var(--gold2); }
+.btn-gold:disabled     { background: #4a3d15; color: #786030; cursor: not-allowed; opacity: .8; }
+.btn-ghost             { background: var(--card); color: var(--text); border: 1px solid var(--border); }
+.btn-ghost:hover       { border-color: var(--muted); }
+.btn-danger            { background: rgba(192,57,43,.15); color: #e74c3c; border: 1px solid var(--red); }
+.btn-danger:hover      { background: rgba(192,57,43,.3); }
+
+.actions {
+  display: flex;
+  gap: .6rem;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 1.25rem;
+}
+
+/* ── Info tip ───────────────────────────────────────────────────────── */
+.info-tip {
+  background: rgba(41,128,185,.1);
+  border: 1px solid rgba(41,128,185,.3);
+  border-radius: 6px;
+  padding: .6rem 1rem;
+  font-size: .8rem;
+  color: #5dade2;
+  margin-bottom: 1rem;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   GROUP STAGE
+═══════════════════════════════════════════════════════════════════════ */
+.groups-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: .9rem;
+}
+.group-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.group-header {
+  background: linear-gradient(90deg, #192038, #1e2848);
+  padding: .55rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.group-header strong { font-size: .9rem; color: var(--gold); letter-spacing: .06em; }
+.group-header span   { font-size: .72rem; color: var(--muted); }
+
+.team-list { padding: .4rem; }
+.team-item {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .45rem .5rem;
+  border-radius: 5px;
+  cursor: grab;
+  user-select: none;
+  border: 1px solid transparent;
+  transition: background .1s, border-color .1s;
+  margin-bottom: 2px;
+}
+.team-item:last-child  { margin-bottom: 0; }
+.team-item:hover       { background: rgba(255,255,255,.05); border-color: var(--border); }
+.team-item.dragging    { opacity: .3; cursor: grabbing; }
+.team-item.drag-over   { border-color: var(--gold); background: rgba(201,162,39,.12); }
+
+.rank-badge {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .7rem; font-weight: 700;
+  flex-shrink: 0;
+}
+.rank-1 { background: var(--gold); color: #000; }
+.rank-2 { background: #8899aa; color: #000; }
+.rank-3 { background: #6b5b3e; color: #e8ddc8; }
+.rank-4 { background: #2a334d; color: var(--muted); }
+
+.team-flag { font-size: 1.2rem; flex-shrink: 0; line-height: 1; }
+.team-name { font-size: .82rem; font-weight: 500; flex: 1; }
+.move-btns { display: flex; flex-direction: column; gap: 1px; margin-left: auto; }
+.move-btn  {
+  background: none; border: none;
+  color: var(--muted); cursor: pointer;
+  padding: 0 4px; font-size: .65rem; line-height: 1.4;
+  border-radius: 3px; transition: background .1s, color .1s;
+}
+.move-btn:hover:not(:disabled) { background: var(--border); color: var(--text); }
+.move-btn:disabled             { opacity: .2; cursor: default; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   THIRD-PLACE PICKER
+═══════════════════════════════════════════════════════════════════════ */
+.third-stats   { display: flex; align-items: baseline; gap: .75rem; margin-bottom: 1rem; }
+.third-counter { font-size: 1.5rem; font-weight: 800; color: var(--gold); }
+.third-counter small { font-size: .8rem; color: var(--muted); font-weight: 400; }
+.third-msg     { font-size: .82rem; color: var(--muted); }
+
+.third-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+  gap: .65rem;
+}
+.third-card {
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  padding: .7rem .9rem;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+}
+.third-card:hover:not(.maxed)  { border-color: var(--gold); }
+.third-card.picked             { border-color: var(--green2); background: rgba(46,204,113,.1); }
+.third-card.maxed:not(.picked) { opacity: .35; cursor: not-allowed; }
+.third-flag  { font-size: 1.4rem; flex-shrink: 0; line-height: 1; }
+.third-info  { flex: 1; min-width: 0; }
+.third-name  { font-size: .82rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.third-grp   { font-size: .72rem; color: var(--muted); }
+.third-check { font-size: .9rem; color: var(--green2); opacity: 0; flex-shrink: 0; }
+.third-card.picked .third-check { opacity: 1; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   KNOCKOUT BRACKET
+═══════════════════════════════════════════════════════════════════════ */
+.bracket-scroll { overflow-x: auto; padding-bottom: 1rem; }
+.bracket-scroll::-webkit-scrollbar       { height: 6px; }
+.bracket-scroll::-webkit-scrollbar-track { background: var(--surface); }
+.bracket-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+.bracket {
+  display: flex;
+  min-width: 960px;
+  height: 840px;
+}
+.round-col {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 155px;
+  border-right: 1px solid var(--border);
+}
+.round-col:last-child { border-right: none; min-width: 165px; }
+
+.round-label {
+  text-align: center;
+  padding: .38rem .5rem;
+  font-size: .68rem; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase;
+  color: var(--gold);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.matches-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  padding: .3rem .25rem;
+}
+
+.match-box {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--card2);
+  margin: .1rem;
+}
+.round-col:last-child .match-box {
+  border-color: var(--gold);
+  box-shadow: 0 0 14px rgba(201,162,39,.2);
+}
+
+.match-team {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .38rem .5rem;
+  min-height: 32px;
+  cursor: pointer;
+  transition: background .1s;
+}
+.match-team + .match-team { border-top: 1px solid var(--border); }
+.match-team.tbd           { cursor: default; }
+.match-team.tbd .t-flag,
+.match-team.tbd .t-name   { opacity: .3; }
+.match-team:hover:not(.tbd):not(.won) { background: rgba(255,255,255,.07); }
+.match-team.won  { background: rgba(39,174,96,.15); }
+.match-team.won .t-name  { color: var(--green2); font-weight: 700; }
+.match-team.lost { opacity: .32; }
+
+.t-flag  { font-size: .95rem; flex-shrink: 0; line-height: 1; }
+.t-name  { font-size: .73rem; font-weight: 500; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.t-crown { font-size: .65rem; color: var(--gold); opacity: 0; flex-shrink: 0; }
+.match-team.won .t-crown { opacity: 1; }
+
+/* ── Champion banner ────────────────────────────────────────────────── */
+#champBanner {
+  display: none;
+  background: linear-gradient(135deg, #1a1200, #252000);
+  border: 2px solid var(--gold);
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  cursor: pointer;
+}
+#champBanner.show { display: block; animation: champGlow 1.5s ease-in-out infinite alternate; }
+@keyframes champGlow {
+  from { box-shadow: 0 0 10px rgba(201,162,39,.3); }
+  to   { box-shadow: 0 0 40px rgba(201,162,39,.75); }
+}
+#champBanner .ban-trophy  { font-size: 3rem; display: block; margin-bottom: .5rem; line-height: 1; }
+#champBanner h2           { font-size: .82rem; letter-spacing: .18em; color: var(--muted); text-transform: uppercase; }
+#champBanner .ban-flag    { font-size: 2.8rem; margin: .5rem 0 .2rem; line-height: 1; }
+#champBanner .ban-name    { font-size: 2rem; font-weight: 800; color: var(--gold); }
+#champBanner .ban-sub     { font-size: .75rem; color: var(--muted); margin-top: .4rem; }
+
+/* ── Responsive ─────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  header h1             { font-size: 1.1rem; }
+  .groups-grid          { grid-template-columns: 1fr 1fr; }
+  nav button            { padding: .7rem .9rem; font-size: .78rem; }
+  .container            { padding: 1rem; }
+}
+@media (max-width: 380px) {
+  .groups-grid          { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════
+     HEADER
+════════════════════════════════════════════ -->
+<header>
+  <span class="hdr-trophy">🏆</span>
+  <div>
+    <h1>2026 World Cup Bracket Predictor</h1>
+    <p>48 teams &middot; 12 groups &middot; Full knockout bracket</p>
+  </div>
+</header>
+
+<!-- ════════════════════════════════════════════
+     NAVIGATION
+════════════════════════════════════════════ -->
+<nav>
+  <button class="active" onclick="goTab('groups')">① Group Stage</button>
+  <button onclick="goTab('third')">② Third Place</button>
+  <button onclick="goTab('bracket')">③ Knockout Bracket</button>
+</nav>
+
+<!-- ════════════════════════════════════════════
+     MAIN CONTENT
+════════════════════════════════════════════ -->
+<div class="container">
+
+  <!-- ── Tab 1: Group Stage ── -->
+  <div id="tab-groups" class="tab active">
+    <div class="section-title">Group Stage Rankings</div>
+    <div class="section-sub">
+      Drag teams or use ▲▼ to rank each group.
+      Top 2 advance directly; 3rd-place teams compete for wildcard spots in the next step.
+    </div>
+    <div class="groups-grid" id="groupsGrid"></div>
+    <div class="actions">
+      <button class="btn btn-gold" onclick="goTab('third')">Next: Select Third-Place Teams →</button>
+    </div>
+  </div>
+
+  <!-- ── Tab 2: Third Place ── -->
+  <div id="tab-third" class="tab">
+    <div class="section-title">Third-Place Wildcard Selection</div>
+    <div class="section-sub">
+      Pick exactly 8 of the 12 third-place finishers to advance to the Round of 32.
+      Click a card to select or deselect.
+    </div>
+    <div class="third-stats">
+      <span class="third-counter" id="thirdCountEl">0 <small>/ 8 selected</small></span>
+      <span class="third-msg" id="thirdMsgEl"></span>
+    </div>
+    <div class="third-grid" id="thirdGrid"></div>
+    <div class="actions">
+      <button class="btn btn-ghost" onclick="goTab('groups')">← Back to Groups</button>
+      <button class="btn btn-gold" id="genBtn" onclick="doBracket()" disabled>Generate Bracket →</button>
+    </div>
+  </div>
+
+  <!-- ── Tab 3: Knockout Bracket ── -->
+  <div id="tab-bracket" class="tab">
+    <!-- Champion reveal (hidden until Final is complete) -->
+    <div id="champBanner" onclick="undoChampion()">
+      <span class="ban-trophy">🏆</span>
+      <h2>2026 World Cup Champion</h2>
+      <div class="ban-flag" id="champFlag"></div>
+      <div class="ban-name" id="champName"></div>
+      <div class="ban-sub">Click to undo pick</div>
+    </div>
+
+    <div class="actions" style="margin-bottom:1rem; margin-top:0">
+      <button class="btn btn-gold" onclick="regenBracket()">↺ Regenerate from Groups</button>
+      <button class="btn btn-danger" onclick="resetAll()">✕ Reset Everything</button>
+    </div>
+    <div class="info-tip">
+      Click any team to mark them as the winner — they advance automatically.
+      Click a highlighted winner again to undo that pick.
+    </div>
+    <div class="bracket-scroll">
+      <div class="bracket" id="bracketEl"></div>
+    </div>
+  </div>
+
+</div><!-- /.container -->
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════
+// STEP 1 SCAFFOLD — data, state, and tab navigation wired up.
+// Group stage rendering, third-place picker, and bracket logic
+// will be filled in subsequent steps.
+// ═══════════════════════════════════════════════════════════════════════
+
+// ── Team data ───────────────────────────────────────────────────────────
+const TEAM_DATA = {
+  A:[{n:'USA',f:'🇺🇸'},{n:'Mexico',f:'🇲🇽'},{n:'Canada',f:'🇨🇦'},{n:'Costa Rica',f:'🇨🇷'}],
+  B:[{n:'Brazil',f:'🇧🇷'},{n:'Argentina',f:'🇦🇷'},{n:'Uruguay',f:'🇺🇾'},{n:'Colombia',f:'🇨🇴'}],
+  C:[{n:'Ecuador',f:'🇪🇨'},{n:'Chile',f:'🇨🇱'},{n:'Panama',f:'🇵🇦'},{n:'Jamaica',f:'🇯🇲'}],
+  D:[{n:'France',f:'🇫🇷'},{n:'England',f:'🏴󠁧󠁢󠁥󠁮󠁧󠁿'},{n:'Germany',f:'🇩🇪'},{n:'Spain',f:'🇪🇸'}],
+  E:[{n:'Portugal',f:'🇵🇹'},{n:'Italy',f:'🇮🇹'},{n:'Netherlands',f:'🇳🇱'},{n:'Belgium',f:'🇧🇪'}],
+  F:[{n:'Croatia',f:'🇭🇷'},{n:'Denmark',f:'🇩🇰'},{n:'Switzerland',f:'🇨🇭'},{n:'Austria',f:'🇦🇹'}],
+  G:[{n:'Poland',f:'🇵🇱'},{n:'Serbia',f:'🇷🇸'},{n:'Romania',f:'🇷🇴'},{n:'Hungary',f:'🇭🇺'}],
+  H:[{n:'Morocco',f:'🇲🇦'},{n:'Senegal',f:'🇸🇳'},{n:'Nigeria',f:'🇳🇬'},{n:'Cameroon',f:'🇨🇲'}],
+  I:[{n:'Egypt',f:'🇪🇬'},{n:'Ivory Coast',f:'🇨🇮'},{n:'Ghana',f:'🇬🇭'},{n:'Algeria',f:'🇩🇿'}],
+  J:[{n:'Japan',f:'🇯🇵'},{n:'South Korea',f:'🇰🇷'},{n:'Iran',f:'🇮🇷'},{n:'Saudi Arabia',f:'🇸🇦'}],
+  K:[{n:'Australia',f:'🇦🇺'},{n:'Qatar',f:'🇶🇦'},{n:'Iraq',f:'🇮🇶'},{n:'New Zealand',f:'🇳🇿'}],
+  L:[{n:'El Salvador',f:'🇸🇻'},{n:'Honduras',f:'🇭🇳'},{n:'Bolivia',f:'🇧🇴'},{n:'Peru',f:'🇵🇪'}],
+};
+const GROUPS = Object.keys(TEAM_DATA); // ['A'..'L']
+
+// R32 seedings: each entry = [home-seed, away-seed]
+// Seed formats:  'P1A' = 1st place Group A
+//                'P2B' = 2nd place Group B
+//                '3P0' = 1st selected third-place wildcard (index into picks[])
+const R32_SEEDS = [
+  ['P1A','P2B'], ['P1C','P2D'], ['P1E','P2F'], ['P1G','P2H'],
+  ['P1I','P2J'], ['P1K','P2L'], ['P1B','P2A'], ['P1D','P2C'],
+  ['P1F','P2E'], ['P1H','P2G'], ['P1J','P2I'], ['P1L','P2K'],
+  ['3P0','3P1'], ['3P2','3P3'], ['3P4','3P5'], ['3P6','3P7'],
+];
+
+const ROUNDS       = ['r32', 'r16', 'qf', 'sf', 'fin'];
+const ROUND_LABELS = { r32:'Round of 32', r16:'Round of 16', qf:'Quarterfinals', sf:'Semifinals', fin:'Final' };
+const ROUND_SIZE   = { r32: 16, r16: 8, qf: 4, sf: 2, fin: 1 };
+
+// ── State ────────────────────────────────────────────────────────────────
+function defaultState() {
+  return {
+    rankings: Object.fromEntries(GROUPS.map(g => [g, TEAM_DATA[g].map(t => t.n)])),
+    picks:    [],        // up to 8 group letters, third-place wildcards
+    bracket:  newBracket(),
+    ready:    false,     // true after bracket has been generated once
+  };
+}
+function newBracket() {
+  return Object.fromEntries(
+    ROUNDS.map(r => [r, Array.from({length: ROUND_SIZE[r]}, () => ({t1:null,f1:null,t2:null,f2:null,w:null}))])
+  );
+}
+
+let S = defaultState();
+
+// ── Persistence ──────────────────────────────────────────────────────────
+function save() { try { localStorage.setItem('wc26_v1', JSON.stringify(S)); } catch(_) {} }
+function load() {
+  try {
+    const raw = localStorage.getItem('wc26_v1');
+    if (raw) S = JSON.parse(raw);
+  } catch(_) {}
+}
+
+// ── Tab navigation ───────────────────────────────────────────────────────
+function goTab(name) {
+  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  const idx = ['groups','third','bracket'].indexOf(name);
+  document.querySelectorAll('nav button')[idx].classList.add('active');
+  if (name === 'third')   renderThird();
+  if (name === 'bracket') { if (S.ready) renderBracket(); }
+}
+
+// ── Helpers ──────────────────────────────────────────────────────────────
+function teamByName(n) {
+  for (const g of GROUPS) { const t = TEAM_DATA[g].find(t => t.n === n); if (t) return t; }
+  return { n: n || '?', f: '❓' };
+}
+function ranked(g) { return S.rankings[g] || TEAM_DATA[g].map(t => t.n); }
+
+function resolveSlot(seed) {
+  if (seed.startsWith('3P')) {
+    const grp = S.picks[parseInt(seed.slice(2))];
+    return grp ? ranked(grp)[2] : null;
+  }
+  const pos = parseInt(seed[1]) - 1;
+  const grp = seed[2];
+  return ranked(grp)[pos] ?? null;
+}
+
+function nextSlot(round, mi) {
+  const ri = ROUNDS.indexOf(round);
+  if (ri >= ROUNDS.length - 1) return null;
+  return { round: ROUNDS[ri + 1], idx: Math.floor(mi / 2), slot: mi % 2 };
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// GROUP STAGE — placeholder until Step 2
+// ════════════════════════════════════════════════════════════════════════
+function renderGroups() {
+  document.getElementById('groupsGrid').innerHTML =
+    '<p style="color:var(--muted);padding:1rem">Group stage coming in Step 2…</p>';
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// THIRD PLACE — placeholder until Step 3
+// ════════════════════════════════════════════════════════════════════════
+function renderThird()    { /* Step 3 */ }
+function togglePick(_g)   { /* Step 3 */ }
+function doBracket()      { /* Step 3 */ }
+
+// ════════════════════════════════════════════════════════════════════════
+// BRACKET — placeholder until Steps 4 & 5
+// ════════════════════════════════════════════════════════════════════════
+function renderBracket()  { /* Step 4 */ }
+function regenBracket()   { /* Step 4 */ }
+function undoChampion()   { /* Step 5 */ }
+function resetAll()       { /* Step 5 */ }
+
+// ── Boot ─────────────────────────────────────────────────────────────────
+load();
+renderGroups();
+</script>
+</body>
+</html>
