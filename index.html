@@ -619,11 +619,56 @@ function mv(g, i, dir) {
 }
 
 // ════════════════════════════════════════════════════════════════════════
-// THIRD PLACE — placeholder until Step 3
+// THIRD-PLACE WILDCARD PICKER
 // ════════════════════════════════════════════════════════════════════════
-function renderThird()    { /* Step 3 */ }
-function togglePick(_g)   { /* Step 3 */ }
-function doBracket()      { /* Step 3 */ }
+function renderThird() {
+  const grid = document.getElementById('thirdGrid');
+  grid.innerHTML = '';
+  const cnt  = S.picks.length;
+  const full = cnt >= 8;
+
+  document.getElementById('thirdCountEl').innerHTML = `${cnt} <small>/ 8 selected</small>`;
+  document.getElementById('thirdMsgEl').textContent =
+    cnt < 8 ? `Select ${8 - cnt} more team${8 - cnt !== 1 ? 's' : ''} to continue`
+            : 'All 8 picks made — ready to generate!';
+
+  const btn = document.getElementById('genBtn');
+  btn.disabled = cnt < 8;
+
+  GROUPS.forEach(g => {
+    const name = ranked(g)[2];          // 3rd-place team in this group
+    const t    = teamByName(name);
+    const sel  = S.picks.includes(g);
+    const maxed = full && !sel;
+
+    const card = document.createElement('div');
+    card.className = `third-card${sel ? ' picked' : ''}${maxed ? ' maxed' : ''}`;
+    card.innerHTML = `
+      <span class="third-flag">${t.f}</span>
+      <div class="third-info">
+        <div class="third-name">${name}</div>
+        <div class="third-grp">Group ${g} · 3rd place</div>
+      </div>
+      <span class="third-check">✓</span>`;
+
+    if (!maxed) card.addEventListener('click', () => togglePick(g));
+    grid.appendChild(card);
+  });
+}
+
+function togglePick(g) {
+  const idx = S.picks.indexOf(g);
+  if (idx >= 0)            S.picks.splice(idx, 1);
+  else if (S.picks.length < 8) S.picks.push(g);
+  save();
+  renderThird();
+}
+
+function doBracket() {
+  if (S.picks.length < 8) return;
+  genBracket();
+  goTab('bracket');
+}
 
 // ════════════════════════════════════════════════════════════════════════
 // BRACKET — placeholder until Steps 4 & 5
