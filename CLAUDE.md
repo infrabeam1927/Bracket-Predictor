@@ -27,7 +27,7 @@ The entire app is one self-contained file with three logical sections:
 
 ### State (`S`)
 
-Single object persisted to `localStorage` under `'wc26_v1'`:
+Single object persisted to `localStorage` under `'wc26_v2'`:
 
 ```js
 {
@@ -89,10 +89,10 @@ All rendering is **full re-render on every state change** — no virtual DOM or 
 
 ## Making changes
 
-**Adding or renaming a team:** Edit `TEAM_DATA` only. Rankings default to `TEAM_DATA` order, so existing `localStorage` for that group will show stale names — consider bumping the storage key (`'wc26_v1'` → `'wc26_v2'`).
+**Adding or renaming a team:** Edit `TEAM_DATA` only. Rankings default to `TEAM_DATA` order, so existing `localStorage` for that group will show stale names — consider bumping the storage key (`'wc26_v2'` → `'wc26_v3'`).
 
 **Changing R32 matchups:** Edit `R32_SEEDS`. Each entry is `[homeSeed, awaySeed]`; the array index determines which R16 match the winner feeds into (`Math.floor(i/2)`).
 
 **Adding a sixth round:** Add the round key to `ROUNDS`, `ROUND_LABELS`, and `ROUND_SIZE`. `nextSlot()` and `clearDown()` will handle the new round automatically.
 
-**Resetting saved state during development:** Open browser DevTools → Application → Local Storage → delete `wc26_v1`, or call `resetAll()` from the console.
+**Resetting saved state during development:** Open browser DevTools → Application → Local Storage → delete `wc26_v2`, or call `resetAll()` from the console.

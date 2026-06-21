@@ -428,19 +428,20 @@ nav button:focus-visible  { outline: 2px solid var(--gold); outline-offset: -2px
 // ═══════════════════════════════════════════════════════════════════════
 
 // ── Team data ───────────────────────────────────────────────────────────
+// Official 2026 FIFA World Cup groups (draw: 5 Dec 2024, Kennedy Center, Washington D.C.)
 const TEAM_DATA = {
-  A:[{n:'USA',f:'🇺🇸'},{n:'Mexico',f:'🇲🇽'},{n:'Canada',f:'🇨🇦'},{n:'Costa Rica',f:'🇨🇷'}],
-  B:[{n:'Brazil',f:'🇧🇷'},{n:'Argentina',f:'🇦🇷'},{n:'Uruguay',f:'🇺🇾'},{n:'Colombia',f:'🇨🇴'}],
-  C:[{n:'Ecuador',f:'🇪🇨'},{n:'Chile',f:'🇨🇱'},{n:'Panama',f:'🇵🇦'},{n:'Jamaica',f:'🇯🇲'}],
-  D:[{n:'France',f:'🇫🇷'},{n:'England',f:'🏴󠁧󠁢󠁥󠁮󠁧󠁿'},{n:'Germany',f:'🇩🇪'},{n:'Spain',f:'🇪🇸'}],
-  E:[{n:'Portugal',f:'🇵🇹'},{n:'Italy',f:'🇮🇹'},{n:'Netherlands',f:'🇳🇱'},{n:'Belgium',f:'🇧🇪'}],
-  F:[{n:'Croatia',f:'🇭🇷'},{n:'Denmark',f:'🇩🇰'},{n:'Switzerland',f:'🇨🇭'},{n:'Austria',f:'🇦🇹'}],
-  G:[{n:'Poland',f:'🇵🇱'},{n:'Serbia',f:'🇷🇸'},{n:'Romania',f:'🇷🇴'},{n:'Hungary',f:'🇭🇺'}],
-  H:[{n:'Morocco',f:'🇲🇦'},{n:'Senegal',f:'🇸🇳'},{n:'Nigeria',f:'🇳🇬'},{n:'Cameroon',f:'🇨🇲'}],
-  I:[{n:'Egypt',f:'🇪🇬'},{n:'Ivory Coast',f:'🇨🇮'},{n:'Ghana',f:'🇬🇭'},{n:'Algeria',f:'🇩🇿'}],
-  J:[{n:'Japan',f:'🇯🇵'},{n:'South Korea',f:'🇰🇷'},{n:'Iran',f:'🇮🇷'},{n:'Saudi Arabia',f:'🇸🇦'}],
-  K:[{n:'Australia',f:'🇦🇺'},{n:'Qatar',f:'🇶🇦'},{n:'Iraq',f:'🇮🇶'},{n:'New Zealand',f:'🇳🇿'}],
-  L:[{n:'El Salvador',f:'🇸🇻'},{n:'Honduras',f:'🇭🇳'},{n:'Bolivia',f:'🇧🇴'},{n:'Peru',f:'🇵🇪'}],
+  A:[{n:'Mexico',f:'🇲🇽'},{n:'South Korea',f:'🇰🇷'},{n:'South Africa',f:'🇿🇦'},{n:'Czech Republic',f:'🇨🇿'}],
+  B:[{n:'Canada',f:'🇨🇦'},{n:'Switzerland',f:'🇨🇭'},{n:'Qatar',f:'🇶🇦'},{n:'Bosnia & Herz.',f:'🇧🇦'}],
+  C:[{n:'Brazil',f:'🇧🇷'},{n:'Morocco',f:'🇲🇦'},{n:'Scotland',f:'🏴󠁧󠁢󠁳󠁣󠁴󠁿'},{n:'Haiti',f:'🇭🇹'}],
+  D:[{n:'USA',f:'🇺🇸'},{n:'Australia',f:'🇦🇺'},{n:'Paraguay',f:'🇵🇾'},{n:'Türkiye',f:'🇹🇷'}],
+  E:[{n:'Germany',f:'🇩🇪'},{n:'Ecuador',f:'🇪🇨'},{n:'Ivory Coast',f:'🇨🇮'},{n:'Curaçao',f:'🇨🇼'}],
+  F:[{n:'Netherlands',f:'🇳🇱'},{n:'Japan',f:'🇯🇵'},{n:'Sweden',f:'🇸🇪'},{n:'Tunisia',f:'🇹🇳'}],
+  G:[{n:'Belgium',f:'🇧🇪'},{n:'Iran',f:'🇮🇷'},{n:'Egypt',f:'🇪🇬'},{n:'New Zealand',f:'🇳🇿'}],
+  H:[{n:'Spain',f:'🇪🇸'},{n:'Uruguay',f:'🇺🇾'},{n:'Saudi Arabia',f:'🇸🇦'},{n:'Cape Verde',f:'🇨🇻'}],
+  I:[{n:'France',f:'🇫🇷'},{n:'Senegal',f:'🇸🇳'},{n:'Norway',f:'🇳🇴'},{n:'Iraq',f:'🇮🇶'}],
+  J:[{n:'Argentina',f:'🇦🇷'},{n:'Austria',f:'🇦🇹'},{n:'Algeria',f:'🇩🇿'},{n:'Jordan',f:'🇯🇴'}],
+  K:[{n:'Portugal',f:'🇵🇹'},{n:'Colombia',f:'🇨🇴'},{n:'Uzbekistan',f:'🇺🇿'},{n:'DR Congo',f:'🇨🇩'}],
+  L:[{n:'England',f:'🏴󠁧󠁢󠁥󠁮󠁧󠁿'},{n:'Croatia',f:'🇭🇷'},{n:'Ghana',f:'🇬🇭'},{n:'Panama',f:'🇵🇦'}],
 };
 const GROUPS = Object.keys(TEAM_DATA); // ['A'..'L']
 
@@ -477,10 +478,10 @@ function newBracket() {
 let S = defaultState();
 
 // ── Persistence ──────────────────────────────────────────────────────────
-function save() { try { localStorage.setItem('wc26_v1', JSON.stringify(S)); } catch(_) {} }
+function save() { try { localStorage.setItem('wc26_v2', JSON.stringify(S)); } catch(_) {} }
 function load() {
   try {
-    const raw = localStorage.getItem('wc26_v1');
+    const raw = localStorage.getItem('wc26_v2');
     if (raw) S = JSON.parse(raw);
   } catch(_) {}
 }
