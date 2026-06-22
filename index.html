@@ -572,7 +572,7 @@ const ROUND_SIZE   = { r32: 16, r16: 8, qf: 4, sf: 2, fin: 1 };
 // ── API-Football live standings ───────────────────────────────────────────
 // NOTE: keep this repo private to protect the key, or rotate it if exposed.
 const AF_KEY    = 'ddebc6df822a133a61b63bd9349ce61a';
-const AF_HOST   = 'api-football-v1.p.rapidapi.com';
+const AF_BASE   = 'https://v3.football.api-sports.io';  // direct API (not RapidAPI)
 const AF_LEAGUE = 1;     // FIFA World Cup
 const AF_SEASON = 2026;
 
@@ -609,9 +609,9 @@ async function fetchLiveStandings() {
   stat.textContent = 'Fetching…';
   stat.className   = 'fetch-status fetching';
   try {
-    const url = `https://${AF_HOST}/v3/standings?league=${AF_LEAGUE}&season=${AF_SEASON}`;
+    const url = `${AF_BASE}/standings?league=${AF_LEAGUE}&season=${AF_SEASON}`;
     const res = await fetch(url, {
-      headers: { 'x-rapidapi-key': AF_KEY, 'x-rapidapi-host': AF_HOST }
+      headers: { 'x-apisports-key': AF_KEY }
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
