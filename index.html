@@ -194,6 +194,33 @@ nav button:focus-visible  { outline: 2px solid var(--gold); outline-offset: -2px
 .move-btn:hover:not(:disabled) { background: var(--border); color: var(--text); }
 .move-btn:disabled             { opacity: .2; cursor: default; }
 
+/* ── Live standings bar ─────────────────────────────────────────────── */
+.live-bar {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+.btn-live {
+  background: rgba(46,204,113,.12);
+  color: #58d68d;
+  border: 1px solid rgba(46,204,113,.35);
+  border-radius: 5px;
+  padding: .42rem .95rem;
+  font-size: .82rem;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: .02em;
+  transition: background .15s;
+}
+.btn-live:hover:not(:disabled) { background: rgba(46,204,113,.25); }
+.btn-live:disabled              { opacity: .5; cursor: not-allowed; }
+.fetch-status          { font-size: .78rem; color: var(--muted); }
+.fetch-status.ok       { color: #58d68d; }
+.fetch-status.err      { color: #e74c3c; }
+.fetch-status.fetching { color: var(--gold); }
+
 /* ── Standings table header row ─────────────────────────────────────── */
 .stats-hdr {
   display: flex;
@@ -423,8 +450,11 @@ nav button:focus-visible  { outline: 2px solid var(--gold); outline-offset: -2px
       Drag teams or use ▲▼ to set your predicted group finish order.
       <span style="color:rgba(46,204,113,.9)">&#9646; 1st–2nd</span> advance &middot;
       <span style="color:rgba(243,156,18,.9)">&#9646; 3rd</span> wildcard &middot;
-      <span style="opacity:.55">4th</span> eliminated &middot;
-      Stats columns fill in once a data source is connected.
+      <span style="opacity:.55">4th</span> eliminated.
+    </div>
+    <div class="live-bar">
+      <button class="btn-live" id="refreshBtn" onclick="fetchLiveStandings()">⟳ Fetch Live Standings</button>
+      <span class="fetch-status" id="fetchStatus">via API-Football · click to refresh</span>
     </div>
     <div class="groups-grid" id="groupsGrid"></div>
     <div class="actions">
@@ -538,6 +568,98 @@ const MATCH_NUMS = {
 const ROUNDS       = ['r32', 'r16', 'qf', 'sf', 'fin'];
 const ROUND_LABELS = { r32:'Round of 32', r16:'Round of 16', qf:'Quarterfinals', sf:'Semifinals', fin:'Final' };
 const ROUND_SIZE   = { r32: 16, r16: 8, qf: 4, sf: 2, fin: 1 };
+
+// ── API-Football live standings ───────────────────────────────────────────
+// NOTE: keep this repo private to protect the key, or rotate it if exposed.
+const AF_KEY    = 'ddebc6df822a133a61b63bd9349ce61a';
+const AF_HOST   = 'api-football-v1.p.rapidapi.com';
+const AF_LEAGUE = 1;     // FIFA World Cup
+const AF_SEASON = 2026;
+
+// Maps API-Football team names → our TEAM_DATA names where they differ
+const AF_NAME_MAP = {
+  'United States':                'USA',
+  'Bosnia and Herzegovina':       'Bosnia & Herz.',
+  "Côte d'Ivoire":               'Ivory Coast',
+  "Cote d'Ivoire":               'Ivory Coast',
+  'Democratic Republic of Congo': 'DR Congo',
+  'Republic of Congo':            'DR Congo',
+  'Curacao':                      'Curaçao',
+  'Turkey':                       'Türkiye',
+  'Korea Republic':               'South Korea',
+  'Korea DPR':                    'South Korea',
+};
+
+function afNormalize(name) { return AF_NAME_MAP[name] || name; }
+
+function afMatch(g, apiName) {
+  const norm  = afNormalize(apiName);
+  const teams = TEAM_DATA[g].map(t => t.n);
+  if (teams.includes(norm)) return norm;
+  const ci = teams.find(t => t.toLowerCase() === norm.toLowerCase());
+  if (ci) return ci;
+  const fw = norm.split(/[\s,&]/)[0].toLowerCase();
+  return teams.find(t => t.toLowerCase().startsWith(fw)) || norm;
+}
+
+async function fetchLiveStandings() {
+  const btn  = document.getElementById('refreshBtn');
+  const stat = document.getElementById('fetchStatus');
+  btn.disabled     = true;
+  stat.textContent = 'Fetching…';
+  stat.className   = 'fetch-status fetching';
+  try {
+    const url = `https://${AF_HOST}/v3/standings?league=${AF_LEAGUE}&season=${AF_SEASON}`;
+    const res = await fetch(url, {
+      headers: { 'x-rapidapi-key': AF_KEY, 'x-rapidapi-host': AF_HOST }
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    const allGroups = data.response?.[0]?.league?.standings ?? [];
+    if (!allGroups.length) throw new Error('No standings in response');
+    let updated = 0;
+
+    for (const group of allGroups) {
+      if (!group.length) continue;
+      const m = (group[0].group || '').match(/Group\s+([A-L])/i);
+      if (!m) continue;
+      const g = m[1].toUpperCase();
+      if (!GROUPS.includes(g)) continue;
+
+      const parsed = group.map(e => ({
+        name: afMatch(g, e.team?.name || ''),
+        rank: e.rank ?? 99,
+        pld:  e.all?.played        ?? 0,
+        w:    e.all?.win           ?? 0,
+        d:    e.all?.draw          ?? 0,
+        l:    e.all?.lose          ?? 0,
+        gf:   e.all?.goals?.for    ?? 0,
+        ga:   e.all?.goals?.against ?? 0,
+        gd:   e.goalsDiff          ?? 0,
+        pts:  e.points             ?? 0,
+      })).sort((a, b) => a.rank - b.rank);
+
+      S.rankings[g] = parsed.map(p => p.name);
+      if (!S.stats) S.stats = {};
+      S.stats[g] = parsed;
+      updated++;
+    }
+
+    if (!updated) throw new Error('No recognised groups returned');
+    S.lastFetch = new Date().toISOString();
+    save();
+    renderGroups();
+    stat.textContent = `Live · ${updated} groups · ${new Date().toLocaleTimeString()}`;
+    stat.className   = 'fetch-status ok';
+  } catch (err) {
+    stat.textContent = `Error: ${err.message}`;
+    stat.className   = 'fetch-status err';
+    console.error('fetchLiveStandings:', err);
+  } finally {
+    btn.disabled = false;
+  }
+}
 
 // ── State ────────────────────────────────────────────────────────────────
 function defaultState() {
