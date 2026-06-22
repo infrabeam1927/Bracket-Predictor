@@ -194,6 +194,26 @@ nav button:focus-visible  { outline: 2px solid var(--gold); outline-offset: -2px
 .move-btn:hover:not(:disabled) { background: var(--border); color: var(--text); }
 .move-btn:disabled             { opacity: .2; cursor: default; }
 
+/* ── Group stage position zone highlights ───────────────────────────── */
+/* pos-1/2: green left-stripe (advancing), pos-3: amber (wildcard), pos-4: dimmed */
+.team-item.pos-1:not(.drag-over),
+.team-item.pos-2:not(.drag-over) { border-left: 3px solid rgba(46,204,113,.65); }
+.team-item.pos-3:not(.drag-over) { border-left: 3px solid rgba(243,156,18,.70); margin-top: 5px; }
+.team-item.pos-4                 { opacity: .5; margin-top: 5px; }
+.team-item.pos-4:hover           { opacity: .75; }
+
+/* ── Bracket match-number chip ──────────────────────────────────────── */
+.match-num {
+  font-size: .58rem;
+  color: var(--muted);
+  padding: .1rem .45rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  letter-spacing: .04em;
+  text-align: right;
+  opacity: .75;
+}
+
 /* ═══════════════════════════════════════════════════════════════════════
    THIRD-PLACE PICKER
 ═══════════════════════════════════════════════════════════════════════ */
@@ -370,7 +390,9 @@ nav button:focus-visible  { outline: 2px solid var(--gold); outline-offset: -2px
     <div class="section-title">Group Stage Rankings</div>
     <div class="section-sub">
       Drag teams or use ▲▼ to rank each group.
-      Top 2 advance directly; 3rd-place teams compete for wildcard spots in the next step.
+      <span style="color:rgba(46,204,113,.9)">&#9646; 1st–2nd</span> advance directly &middot;
+      <span style="color:rgba(243,156,18,.9)">&#9646; 3rd</span> competes for a wildcard &middot;
+      <span style="opacity:.55">4th</span> is eliminated.
     </div>
     <div class="groups-grid" id="groupsGrid"></div>
     <div class="actions">
@@ -450,16 +472,36 @@ const TEAM_DATA = {
 };
 const GROUPS = Object.keys(TEAM_DATA); // ['A'..'L']
 
-// R32 seedings: each entry = [home-seed, away-seed]
-// Seed formats:  'P1A' = 1st place Group A
-//                'P2B' = 2nd place Group B
-//                '3P0' = 1st selected third-place wildcard (index into picks[])
-const R32_SEEDS = [
-  ['P1A','P2B'], ['P1C','P2D'], ['P1E','P2F'], ['P1G','P2H'],
-  ['P1I','P2J'], ['P1K','P2L'], ['P1B','P2A'], ['P1D','P2C'],
-  ['P1F','P2E'], ['P1H','P2G'], ['P1J','P2I'], ['P1L','P2K'],
-  ['3P0','3P1'], ['3P2','3P3'], ['3P4','3P5'], ['3P6','3P7'],
+// Official 2026 R32 fixture definitions (matches M73–M88).
+// Array order is chosen so Math.floor(i/2) maps each pair to the correct R16 slot.
+// 't':'P' = 1st/2nd place finisher; 't':'3' = a 3rd-place wildcard from a pool of groups.
+const R32_DEFS = [
+  [{t:'P',pos:1,g:'E'}, {t:'3',pool:'ABCDF'}],   // M74  → R16 slot 0
+  [{t:'P',pos:1,g:'I'}, {t:'3',pool:'CDFGH'}],   // M77  → R16 slot 0
+  [{t:'P',pos:2,g:'A'}, {t:'P',pos:2,g:'B'}],    // M73  → R16 slot 1
+  [{t:'P',pos:1,g:'F'}, {t:'P',pos:2,g:'C'}],    // M75  → R16 slot 1
+  [{t:'P',pos:2,g:'K'}, {t:'P',pos:2,g:'L'}],    // M83  → R16 slot 2
+  [{t:'P',pos:1,g:'H'}, {t:'P',pos:2,g:'J'}],    // M84  → R16 slot 2
+  [{t:'P',pos:1,g:'D'}, {t:'3',pool:'BEFIJ'}],   // M81  → R16 slot 3
+  [{t:'P',pos:1,g:'G'}, {t:'3',pool:'AEHIJ'}],   // M82  → R16 slot 3
+  [{t:'P',pos:1,g:'C'}, {t:'P',pos:2,g:'F'}],    // M76  → R16 slot 4
+  [{t:'P',pos:2,g:'E'}, {t:'P',pos:2,g:'I'}],    // M78  → R16 slot 4
+  [{t:'P',pos:1,g:'A'}, {t:'3',pool:'CEFHI'}],   // M79  → R16 slot 5
+  [{t:'P',pos:1,g:'L'}, {t:'3',pool:'EHIJK'}],   // M80  → R16 slot 5
+  [{t:'P',pos:1,g:'J'}, {t:'P',pos:2,g:'H'}],    // M86  → R16 slot 6
+  [{t:'P',pos:2,g:'D'}, {t:'P',pos:2,g:'G'}],    // M88  → R16 slot 6
+  [{t:'P',pos:1,g:'B'}, {t:'3',pool:'EFGIJ'}],   // M85  → R16 slot 7
+  [{t:'P',pos:1,g:'K'}, {t:'3',pool:'DEIJL'}],   // M87  → R16 slot 7
 ];
+
+// FIFA official match numbers for each round slot, used for display only.
+const MATCH_NUMS = {
+  r32: [74, 77, 73, 75, 83, 84, 81, 82, 76, 78, 79, 80, 86, 88, 85, 87],
+  r16: [89, 90, 93, 94, 91, 92, 95, 96],
+  qf:  [97, 98, 99, 100],
+  sf:  [101, 102],
+  fin: [104],
+};
 
 const ROUNDS       = ['r32', 'r16', 'qf', 'sf', 'fin'];
 const ROUND_LABELS = { r32:'Round of 32', r16:'Round of 16', qf:'Quarterfinals', sf:'Semifinals', fin:'Final' };
@@ -483,10 +525,10 @@ function newBracket() {
 let S = defaultState();
 
 // ── Persistence ──────────────────────────────────────────────────────────
-function save() { try { localStorage.setItem('wc26_v2', JSON.stringify(S)); } catch(_) {} }
+function save() { try { localStorage.setItem('wc26_v3', JSON.stringify(S)); } catch(_) {} }
 function load() {
   try {
-    const raw = localStorage.getItem('wc26_v2');
+    const raw = localStorage.getItem('wc26_v3');
     if (raw) S = JSON.parse(raw);
   } catch(_) {}
 }
@@ -509,14 +551,36 @@ function teamByName(n) {
 }
 function ranked(g) { return S.rankings[g] || TEAM_DATA[g].map(t => t.n); }
 
-function resolveSlot(seed) {
-  if (seed.startsWith('3P')) {
-    const grp = S.picks[parseInt(seed.slice(2))];
-    return grp ? ranked(grp)[2] : null;
+// Assign the 8 selected 3rd-place groups to the 8 wildcard slots in R32_DEFS.
+// Each slot has a pool constraint (a string of allowed group letters).
+// We use backtracking DFS so we never get stuck in a greedy dead-end.
+// Slots are attempted in ascending match-number order to match the official draw.
+function assign3rdPlaceTeams() {
+  // Indices into R32_DEFS that are wildcard slots, ordered by match number
+  const wcSlots = R32_DEFS
+    .map((def, i) => ({ i, def: def[1], mnum: MATCH_NUMS.r32[i] }))
+    .filter(x => x.def.t === '3')
+    .sort((a, b) => a.mnum - b.mnum);  // M74, M77, M79, M80, M81, M82, M85, M87
+
+  const picks = [...S.picks];           // the 8 chosen group letters
+  const assignment = {};                // slot index → group letter
+
+  function dfs(si) {
+    if (si === wcSlots.length) return true;
+    const { i, def } = wcSlots[si];
+    const used = new Set(Object.values(assignment));
+    for (const g of picks) {
+      if (used.has(g)) continue;
+      if (!def.pool.includes(g)) continue;
+      assignment[i] = g;
+      if (dfs(si + 1)) return true;
+      delete assignment[i];
+    }
+    return false;
   }
-  const pos = parseInt(seed[1]) - 1;
-  const grp = seed[2];
-  return ranked(grp)[pos] ?? null;
+
+  dfs(0);
+  return assignment;  // { r32DefIndex: groupLetter }
 }
 
 function nextSlot(round, mi) {
@@ -550,7 +614,7 @@ function buildGroupCard(g) {
   r.forEach((name, i) => {
     const t = teamByName(name);
     const row = document.createElement('div');
-    row.className = 'team-item';
+    row.className = `team-item pos-${i + 1}`;
     row.draggable = true;
     row.dataset.g = g;
     row.dataset.i = i;
@@ -682,12 +746,24 @@ function doBracket() {
 function genBracket() {
   S.bracket = newBracket();
 
-  R32_SEEDS.forEach((seeds, i) => {
-    const m   = S.bracket.r32[i];
-    const t1n = resolveSlot(seeds[0]);
-    const t2n = resolveSlot(seeds[1]);
-    if (t1n) { const t = teamByName(t1n); m.t1 = t1n; m.f1 = t.f; }
-    if (t2n) { const t = teamByName(t2n); m.t2 = t2n; m.f2 = t.f; }
+  const wcAssign = assign3rdPlaceTeams();  // { defIndex: groupLetter }
+
+  R32_DEFS.forEach((def, i) => {
+    const m = S.bracket.r32[i];
+    [def[0], def[1]].forEach((slot, si) => {
+      let name;
+      if (slot.t === 'P') {
+        name = ranked(slot.g)[slot.pos - 1] ?? null;
+      } else {
+        const g = wcAssign[i];
+        name = g ? ranked(g)[2] : null;
+      }
+      if (name) {
+        const td = teamByName(name);
+        if (si === 0) { m.t1 = name; m.f1 = td.f; }
+        else          { m.t2 = name; m.f2 = td.f; }
+      }
+    });
   });
 
   S.ready = true;
@@ -730,6 +806,10 @@ function renderBracket() {
 function buildMatch(r, i, m) {
   const box = document.createElement('div');
   box.className = 'match-box';
+  const chip = document.createElement('div');
+  chip.className = 'match-num';
+  chip.textContent = 'M' + MATCH_NUMS[r][i];
+  box.appendChild(chip);
   box.appendChild(buildTeamRow(r, i, m, 0));
   box.appendChild(buildTeamRow(r, i, m, 1));
   return box;
