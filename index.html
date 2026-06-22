@@ -194,33 +194,6 @@ nav button:focus-visible  { outline: 2px solid var(--gold); outline-offset: -2px
 .move-btn:hover:not(:disabled) { background: var(--border); color: var(--text); }
 .move-btn:disabled             { opacity: .2; cursor: default; }
 
-/* ── Live standings bar ─────────────────────────────────────────────── */
-.live-bar {
-  display: flex;
-  align-items: center;
-  gap: .75rem;
-  margin-bottom: 1rem;
-  flex-wrap: wrap;
-}
-.btn-live {
-  background: rgba(46,204,113,.12);
-  color: #58d68d;
-  border: 1px solid rgba(46,204,113,.35);
-  border-radius: 5px;
-  padding: .42rem .95rem;
-  font-size: .82rem;
-  font-weight: 600;
-  cursor: pointer;
-  letter-spacing: .02em;
-  transition: background .15s;
-}
-.btn-live:hover:not(:disabled) { background: rgba(46,204,113,.25); }
-.btn-live:disabled              { opacity: .5; cursor: not-allowed; }
-.fetch-status          { font-size: .78rem; color: var(--muted); }
-.fetch-status.ok       { color: #58d68d; }
-.fetch-status.err      { color: #e74c3c; }
-.fetch-status.fetching { color: var(--gold); }
-
 /* ── Standings table header row ─────────────────────────────────────── */
 .stats-hdr {
   display: flex;
@@ -452,23 +425,6 @@ nav button:focus-visible  { outline: 2px solid var(--gold); outline-offset: -2px
       <span style="color:rgba(243,156,18,.9)">&#9646; 3rd</span> wildcard &middot;
       <span style="opacity:.55">4th</span> eliminated.
     </div>
-    <div class="live-bar">
-      <button class="btn-live" id="livePanelBtn" onclick="toggleLivePanel()">📊 Live Standings</button>
-      <span style="font-size:.78rem;color:var(--muted)">via API-Sports widget · reference while predicting</span>
-    </div>
-    <div id="livePanel" style="display:none;margin-bottom:1.25rem;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1rem;overflow-x:auto;">
-      <div id="wg-api-football-standings"
-        data-host="v3.football.api-sports.io"
-        data-key=""
-        data-league="1"
-        data-team=""
-        data-season="2026"
-        data-theme=""
-        data-show-errors="false"
-        data-show-logos="true"
-        class="wg_loader">
-      </div>
-    </div>
     <div class="groups-grid" id="groupsGrid"></div>
     <div class="actions">
       <button class="btn btn-rand" onclick="randomizeGroups()">🎲 Randomize All Groups</button>
@@ -581,31 +537,6 @@ const MATCH_NUMS = {
 const ROUNDS       = ['r32', 'r16', 'qf', 'sf', 'fin'];
 const ROUND_LABELS = { r32:'Round of 32', r16:'Round of 16', qf:'Quarterfinals', sf:'Semifinals', fin:'Final' };
 const ROUND_SIZE   = { r32: 16, r16: 8, qf: 4, sf: 2, fin: 1 };
-
-// ── API-Sports widget (live standings) ───────────────────────────────────
-// The direct REST API blocks browser requests (CORS). The widget script
-// proxies calls through their CDN — no server needed.
-const AF_KEY = 'ddebc6df822a133a61b63bd9349ce61a';
-
-let _widgetLoaded = false;
-function toggleLivePanel() {
-  const panel = document.getElementById('livePanel');
-  const btn   = document.getElementById('livePanelBtn');
-  const open  = panel.style.display === 'none' || !panel.style.display;
-  panel.style.display = open ? 'block' : 'none';
-  btn.textContent     = open ? '✕ Close Live Standings' : '📊 Live Standings';
-
-  if (open && !_widgetLoaded) {
-    // Inject key at runtime so it lives in one place (the JS constant above)
-    document.getElementById('wg-api-football-standings')
-            .setAttribute('data-key', AF_KEY);
-    const s = document.createElement('script');
-    s.type = 'module';
-    s.src  = 'https://widgets.api-sports.io/2.0.3/widgets.js';
-    document.body.appendChild(s);
-    _widgetLoaded = true;
-  }
-}
 
 // ── State ────────────────────────────────────────────────────────────────
 function defaultState() {
