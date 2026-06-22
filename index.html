@@ -106,6 +106,8 @@ nav button:focus-visible  { outline: 2px solid var(--gold); outline-offset: -2px
 .btn-ghost:hover       { border-color: var(--muted); }
 .btn-danger            { background: rgba(192,57,43,.15); color: #e74c3c; border: 1px solid var(--red); }
 .btn-danger:hover      { background: rgba(192,57,43,.3); }
+.btn-rand              { background: rgba(142,68,173,.2); color: #c39bd3; border: 1px solid #8e44ad; }
+.btn-rand:hover        { background: rgba(142,68,173,.35); }
 
 .actions {
   display: flex;
@@ -372,6 +374,7 @@ nav button:focus-visible  { outline: 2px solid var(--gold); outline-offset: -2px
     </div>
     <div class="groups-grid" id="groupsGrid"></div>
     <div class="actions">
+      <button class="btn btn-rand" onclick="randomizeGroups()">🎲 Randomize All Groups</button>
       <button class="btn btn-gold" onclick="goTab('third')">Next: Select Third-Place Teams →</button>
     </div>
   </div>
@@ -389,6 +392,7 @@ nav button:focus-visible  { outline: 2px solid var(--gold); outline-offset: -2px
     </div>
     <div class="third-grid" id="thirdGrid"></div>
     <div class="actions">
+      <button class="btn btn-rand" onclick="randomizeThird()">🎲 Randomize Picks</button>
       <button class="btn btn-ghost" onclick="goTab('groups')">← Back to Groups</button>
       <button class="btn btn-gold" id="genBtn" onclick="doBracket()" disabled>Generate Bracket →</button>
     </div>
@@ -406,6 +410,7 @@ nav button:focus-visible  { outline: 2px solid var(--gold); outline-offset: -2px
     </div>
 
     <div class="actions" style="margin-bottom:1rem; margin-top:0">
+      <button class="btn btn-rand" onclick="randomizeBracket()">🎲 Randomize Bracket</button>
       <button class="btn btn-gold" onclick="regenBracket()">↺ Regenerate from Groups</button>
       <button class="btn btn-danger" onclick="resetAll()">✕ Reset Everything</button>
     </div>
@@ -837,6 +842,59 @@ function resetAll() {
   document.getElementById('champBanner').classList.remove('show');
   document.getElementById('bracketEl').innerHTML = '';
   goTab('groups');
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// RANDOMIZE
+// ════════════════════════════════════════════════════════════════════════
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+// Tab ①: shuffle every group's team order independently
+function randomizeGroups() {
+  GROUPS.forEach(g => { S.rankings[g] = shuffle([...ranked(g)]); });
+  save();
+  renderGroups();
+}
+
+// Tab ②: randomly pick 8 of the 12 groups as wildcard qualifiers
+function randomizeThird() {
+  S.picks = shuffle([...GROUPS]).slice(0, 8);
+  save();
+  renderThird();
+}
+
+// Tab ③: pick a random winner for every match, round by round so each
+//        round's teams are populated before its winners are chosen.
+//        If the bracket hasn't been generated yet, build it first
+//        (auto-filling third-place picks too if still empty).
+function randomizeBracket() {
+  if (S.picks.length < 8) randomizeThird();
+  genBracket(); // re-seeds R32 from current rankings, clears all winners
+
+  for (const r of ROUNDS) {
+    S.bracket[r].forEach((m, i) => {
+      if (!m.t1 || !m.t2) return;
+      const pickT1 = Math.random() < 0.5;
+      const wName  = pickT1 ? m.t1 : m.t2;
+      const wFlag  = pickT1 ? m.f1 : m.f2;
+      m.w = wName;
+      const ns = nextSlot(r, i);
+      if (ns) {
+        const nm = S.bracket[ns.round][ns.idx];
+        if (ns.slot === 0) { nm.t1 = wName; nm.f1 = wFlag; }
+        else               { nm.t2 = wName; nm.f2 = wFlag; }
+      }
+    });
+  }
+
+  save();
+  renderBracket();
 }
 
 // ── Boot ─────────────────────────────────────────────────────────────────
