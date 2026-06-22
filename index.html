@@ -538,6 +538,91 @@ const ROUNDS       = ['r32', 'r16', 'qf', 'sf', 'fin'];
 const ROUND_LABELS = { r32:'Round of 32', r16:'Round of 16', qf:'Quarterfinals', sf:'Semifinals', fin:'Final' };
 const ROUND_SIZE   = { r32: 16, r16: 8, qf: 4, sf: 2, fin: 1 };
 
+// ── Seed standings: June 21 2026 snapshot ────────────────────────────────
+// Groups A–H have played 2 matches; I–L have played 1.
+// GF/GA unavailable from source (null) → GD will display as —.
+const SEED_NAME_MAP = {
+  'Korea Republic':          'South Korea',
+  'Czechia':                 'Czech Republic',
+  'Bosnia and Herzegovina':  'Bosnia & Herz.',
+  'IR Iran':                 'Iran',
+  'Congo DR':                'DR Congo',
+};
+const SEED_STANDINGS = {
+  A:[
+    {team:'Mexico',           P:2,W:2,D:0,L:0,GF:null,GA:null,Pts:6},
+    {team:'Korea Republic',   P:2,W:1,D:0,L:1,GF:null,GA:null,Pts:3},
+    {team:'Czechia',          P:2,W:0,D:1,L:1,GF:null,GA:null,Pts:1},
+    {team:'South Africa',     P:2,W:0,D:1,L:1,GF:null,GA:null,Pts:1},
+  ],
+  B:[
+    {team:'Canada',                      P:2,W:1,D:1,L:0,GF:null,GA:null,Pts:4},
+    {team:'Switzerland',                 P:2,W:1,D:1,L:0,GF:null,GA:null,Pts:4},
+    {team:'Bosnia and Herzegovina',      P:2,W:0,D:1,L:1,GF:null,GA:null,Pts:1},
+    {team:'Qatar',                       P:2,W:0,D:1,L:1,GF:null,GA:null,Pts:1},
+  ],
+  C:[
+    {team:'Brazil',   P:2,W:1,D:1,L:0,GF:null,GA:null,Pts:4},
+    {team:'Morocco',  P:2,W:1,D:1,L:0,GF:null,GA:null,Pts:4},
+    {team:'Scotland', P:2,W:1,D:0,L:1,GF:null,GA:null,Pts:3},
+    {team:'Haiti',    P:2,W:0,D:0,L:2,GF:null,GA:null,Pts:0},
+  ],
+  D:[
+    {team:'USA',       P:2,W:2,D:0,L:0,GF:null,GA:null,Pts:6},
+    {team:'Australia', P:2,W:1,D:0,L:1,GF:null,GA:null,Pts:3},
+    {team:'Paraguay',  P:2,W:1,D:0,L:1,GF:null,GA:null,Pts:3},
+    {team:'Türkiye',   P:2,W:0,D:0,L:2,GF:null,GA:null,Pts:0},
+  ],
+  E:[
+    {team:'Germany',     P:2,W:2,D:0,L:0,GF:null,GA:null,Pts:6},
+    {team:'Ivory Coast', P:2,W:1,D:0,L:1,GF:null,GA:null,Pts:3},
+    {team:'Ecuador',     P:2,W:0,D:1,L:1,GF:null,GA:null,Pts:1},
+    {team:'Curaçao',     P:2,W:0,D:1,L:1,GF:null,GA:null,Pts:1},
+  ],
+  F:[
+    {team:'Netherlands', P:2,W:1,D:1,L:0,GF:null,GA:null,Pts:4},
+    {team:'Japan',       P:2,W:1,D:1,L:0,GF:null,GA:null,Pts:4},
+    {team:'Sweden',      P:2,W:1,D:0,L:1,GF:null,GA:null,Pts:3},
+    {team:'Tunisia',     P:2,W:0,D:0,L:2,GF:null,GA:null,Pts:0},
+  ],
+  G:[
+    {team:'Egypt',       P:2,W:1,D:1,L:0,GF:null,GA:null,Pts:4},
+    {team:'IR Iran',     P:2,W:0,D:2,L:0,GF:null,GA:null,Pts:2},
+    {team:'Belgium',     P:2,W:0,D:2,L:0,GF:null,GA:null,Pts:2},
+    {team:'New Zealand', P:2,W:0,D:1,L:1,GF:null,GA:null,Pts:1},
+  ],
+  H:[
+    {team:'Spain',        P:2,W:1,D:1,L:0,GF:null,GA:null,Pts:4},
+    {team:'Uruguay',      P:2,W:0,D:2,L:0,GF:null,GA:null,Pts:2},
+    {team:'Cape Verde',   P:2,W:0,D:2,L:0,GF:null,GA:null,Pts:2},
+    {team:'Saudi Arabia', P:2,W:0,D:1,L:1,GF:null,GA:null,Pts:1},
+  ],
+  I:[
+    {team:'Norway',  P:1,W:1,D:0,L:0,GF:null,GA:null,Pts:3},
+    {team:'France',  P:1,W:1,D:0,L:0,GF:null,GA:null,Pts:3},
+    {team:'Senegal', P:1,W:0,D:0,L:1,GF:null,GA:null,Pts:0},
+    {team:'Iraq',    P:1,W:0,D:0,L:1,GF:null,GA:null,Pts:0},
+  ],
+  J:[
+    {team:'Argentina', P:1,W:1,D:0,L:0,GF:null,GA:null,Pts:3},
+    {team:'Austria',   P:1,W:1,D:0,L:0,GF:null,GA:null,Pts:3},
+    {team:'Jordan',    P:1,W:0,D:0,L:1,GF:null,GA:null,Pts:0},
+    {team:'Algeria',   P:1,W:0,D:0,L:1,GF:null,GA:null,Pts:0},
+  ],
+  K:[
+    {team:'Colombia',    P:1,W:1,D:0,L:0,GF:null,GA:null,Pts:3},
+    {team:'Congo DR',    P:1,W:0,D:1,L:0,GF:null,GA:null,Pts:1},
+    {team:'Portugal',    P:1,W:0,D:1,L:0,GF:null,GA:null,Pts:1},
+    {team:'Uzbekistan',  P:1,W:0,D:0,L:1,GF:null,GA:null,Pts:0},
+  ],
+  L:[
+    {team:'England',  P:1,W:1,D:0,L:0,GF:null,GA:null,Pts:3},
+    {team:'Ghana',    P:1,W:1,D:0,L:0,GF:null,GA:null,Pts:3},
+    {team:'Panama',   P:1,W:0,D:0,L:1,GF:null,GA:null,Pts:0},
+    {team:'Croatia',  P:1,W:0,D:0,L:1,GF:null,GA:null,Pts:0},
+  ],
+};
+
 // ── State ────────────────────────────────────────────────────────────────
 function defaultState() {
   return {
@@ -563,6 +648,32 @@ function load() {
     const raw = localStorage.getItem('wc26_v3');
     if (raw) S = JSON.parse(raw);
   } catch(_) {}
+}
+
+// Populates S.stats and S.rankings from SEED_STANDINGS.
+// Auto-called at boot when no live data has been saved yet (S.stats === null).
+function applySeedStandings() {
+  S.stats = {};
+  for (const [g, rows] of Object.entries(SEED_STANDINGS)) {
+    const parsed = rows.map(r => {
+      const name = SEED_NAME_MAP[r.team] || r.team;
+      const gd   = r.GF != null && r.GA != null ? r.GF - r.GA : null;
+      return { name, pld: r.P, w: r.W, d: r.D, l: r.L,
+               gf: r.GF, ga: r.GA, gd, pts: r.Pts };
+    });
+    S.rankings[g] = parsed.map(p => p.name);
+    S.stats[g]    = parsed;
+  }
+  save();
+}
+
+// Returns a clean standings array for group g, merging rankings + stats.
+function getGroupStandings(g) {
+  const stats = S.stats?.[g];
+  return ranked(g).map(name => {
+    const ts = stats?.find(s => s.name === name);
+    return ts ? { ...ts } : { name, pld:0, w:0, d:0, l:0, gf:null, ga:null, gd:null, pts:0 };
+  });
 }
 
 // ── Tab navigation ───────────────────────────────────────────────────────
@@ -661,9 +772,9 @@ function buildGroupCard(g) {
 
   r.forEach((name, i) => {
     const t  = teamByName(name);
-    const ts = gStats?.find(s => s.name === name);
-    const v  = ts ? String : () => '—';
-    const gd = ts ? (ts.gd > 0 ? '+' : '') + ts.gd : '—';
+    const ts  = gStats?.find(s => s.name === name);
+    const fmt = (x) => (ts && x != null) ? String(x) : '—';
+    const gd  = (ts && ts.gd != null) ? (ts.gd > 0 ? '+' : '') + ts.gd : '—';
 
     const row = document.createElement('div');
     row.className = `team-item pos-${i + 1}`;
@@ -675,12 +786,12 @@ function buildGroupCard(g) {
       <span class="rank-badge rank-${i + 1}">${i + 1}</span>
       <span class="team-flag">${t.f}</span>
       <span class="team-name">${name}</span>
-      <span class="col-stat w-pld">${v(ts?.pld)}</span>
-      <span class="col-stat w-wdl">${v(ts?.w)}</span>
-      <span class="col-stat w-wdl">${v(ts?.d)}</span>
-      <span class="col-stat w-wdl">${v(ts?.l)}</span>
+      <span class="col-stat w-pld">${fmt(ts?.pld)}</span>
+      <span class="col-stat w-wdl">${fmt(ts?.w)}</span>
+      <span class="col-stat w-wdl">${fmt(ts?.d)}</span>
+      <span class="col-stat w-wdl">${fmt(ts?.l)}</span>
       <span class="col-stat w-gd">${gd}</span>
-      <span class="col-stat w-pts">${v(ts?.pts)}</span>
+      <span class="col-stat w-pts">${fmt(ts?.pts)}</span>
       <div class="move-btns">
         <button class="move-btn" ${i === 0 ? 'disabled' : ''}
                 onclick="mv('${g}',${i},-1)" title="Move up">▲</button>
@@ -1037,6 +1148,7 @@ function randomizeBracket() {
 
 // ── Boot ─────────────────────────────────────────────────────────────────
 load();
+if (!S.stats) applySeedStandings();
 renderGroups();
 </script>
 </body>
