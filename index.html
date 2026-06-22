@@ -133,7 +133,7 @@ nav button:focus-visible  { outline: 2px solid var(--gold); outline-offset: -2px
 ═══════════════════════════════════════════════════════════════════════ */
 .groups-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
   gap: .9rem;
 }
 .group-card {
@@ -193,6 +193,34 @@ nav button:focus-visible  { outline: 2px solid var(--gold); outline-offset: -2px
 }
 .move-btn:hover:not(:disabled) { background: var(--border); color: var(--text); }
 .move-btn:disabled             { opacity: .2; cursor: default; }
+
+/* ── Standings table header row ─────────────────────────────────────── */
+.stats-hdr {
+  display: flex;
+  align-items: center;
+  gap: .25rem;
+  padding: .18rem .5rem .18rem 0;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255,255,255,.02);
+}
+.stats-hdr .sh-name { flex: 1; font-size: .6rem; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; padding-left: 3.35rem; }
+.stats-hdr .sh-col  { font-size: .6rem; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; text-align: right; flex-shrink: 0; }
+
+/* ── Stat columns in each team row ──────────────────────────────────── */
+.col-stat {
+  font-size: .72rem;
+  text-align: right;
+  flex-shrink: 0;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* column widths — must match .stats-hdr .sh-col widths */
+.w-pld           { width: 18px; }
+.w-wdl           { width: 16px; }
+.w-gd            { width: 26px; }
+.w-pts           { width: 24px; color: var(--gold2); font-weight: 700; }
+.w-spc           { width: 30px; flex-shrink: 0; }  /* spacer matching move-btns */
 
 /* ── Group stage position zone highlights ───────────────────────────── */
 /* pos-1/2: green left-stripe (advancing), pos-3: amber (wildcard), pos-4: dimmed */
@@ -349,9 +377,12 @@ nav button:focus-visible  { outline: 2px solid var(--gold); outline-offset: -2px
 /* ── Responsive ─────────────────────────────────────────────────────── */
 @media (max-width: 640px) {
   header h1             { font-size: 1.1rem; }
-  .groups-grid          { grid-template-columns: 1fr 1fr; }
+  .groups-grid          { grid-template-columns: 1fr; }
   nav button            { padding: .7rem .9rem; font-size: .78rem; }
   .container            { padding: 1rem; }
+  /* hide stat columns on narrow screens */
+  .col-stat, .stats-hdr .sh-col, .w-spc { display: none; }
+  .stats-hdr .sh-name   { padding-left: 0; }
 }
 @media (max-width: 380px) {
   .groups-grid          { grid-template-columns: 1fr; }
@@ -389,10 +420,11 @@ nav button:focus-visible  { outline: 2px solid var(--gold); outline-offset: -2px
   <div id="tab-groups" class="tab active">
     <div class="section-title">Group Stage Rankings</div>
     <div class="section-sub">
-      Drag teams or use ▲▼ to rank each group.
-      <span style="color:rgba(46,204,113,.9)">&#9646; 1st–2nd</span> advance directly &middot;
-      <span style="color:rgba(243,156,18,.9)">&#9646; 3rd</span> competes for a wildcard &middot;
-      <span style="opacity:.55">4th</span> is eliminated.
+      Drag teams or use ▲▼ to set your predicted group finish order.
+      <span style="color:rgba(46,204,113,.9)">&#9646; 1st–2nd</span> advance &middot;
+      <span style="color:rgba(243,156,18,.9)">&#9646; 3rd</span> wildcard &middot;
+      <span style="opacity:.55">4th</span> eliminated &middot;
+      Stats columns fill in once a data source is connected.
     </div>
     <div class="groups-grid" id="groupsGrid"></div>
     <div class="actions">
@@ -514,6 +546,7 @@ function defaultState() {
     picks:    [],        // up to 8 group letters, third-place wildcards
     bracket:  newBracket(),
     ready:    false,     // true after bracket has been generated once
+    stats:    null,      // { [groupLetter]: [{name,pld,w,d,l,gf,ga,gd,pts}, ...] }
   };
 }
 function newBracket() {
@@ -600,19 +633,39 @@ function renderGroups() {
 
 function buildGroupCard(g) {
   const r = ranked(g);
+  const gStats = S.stats?.[g];
+
   const card = document.createElement('div');
   card.className = 'group-card';
 
   const hdr = document.createElement('div');
   hdr.className = 'group-header';
-  hdr.innerHTML = `<strong>GROUP ${g}</strong><span>drag to reorder</span>`;
+  hdr.innerHTML = `<strong>GROUP ${g}</strong><span>${gStats ? '● Live' : 'drag to reorder'}</span>`;
   card.appendChild(hdr);
+
+  // Column header row
+  const sh = document.createElement('div');
+  sh.className = 'stats-hdr';
+  sh.innerHTML = `
+    <span class="sh-name">Team</span>
+    <span class="sh-col w-pld" title="Played">P</span>
+    <span class="sh-col w-wdl" title="Wins">W</span>
+    <span class="sh-col w-wdl" title="Draws">D</span>
+    <span class="sh-col w-wdl" title="Losses">L</span>
+    <span class="sh-col w-gd"  title="Goal difference">GD</span>
+    <span class="sh-col w-pts" title="Points">Pts</span>
+    <span class="w-spc"></span>`;
+  card.appendChild(sh);
 
   const list = document.createElement('div');
   list.className = 'team-list';
 
   r.forEach((name, i) => {
-    const t = teamByName(name);
+    const t  = teamByName(name);
+    const ts = gStats?.find(s => s.name === name);
+    const v  = ts ? String : () => '—';
+    const gd = ts ? (ts.gd > 0 ? '+' : '') + ts.gd : '—';
+
     const row = document.createElement('div');
     row.className = `team-item pos-${i + 1}`;
     row.draggable = true;
@@ -623,6 +676,12 @@ function buildGroupCard(g) {
       <span class="rank-badge rank-${i + 1}">${i + 1}</span>
       <span class="team-flag">${t.f}</span>
       <span class="team-name">${name}</span>
+      <span class="col-stat w-pld">${v(ts?.pld)}</span>
+      <span class="col-stat w-wdl">${v(ts?.w)}</span>
+      <span class="col-stat w-wdl">${v(ts?.d)}</span>
+      <span class="col-stat w-wdl">${v(ts?.l)}</span>
+      <span class="col-stat w-gd">${gd}</span>
+      <span class="col-stat w-pts">${v(ts?.pts)}</span>
       <div class="move-btns">
         <button class="move-btn" ${i === 0 ? 'disabled' : ''}
                 onclick="mv('${g}',${i},-1)" title="Move up">▲</button>
