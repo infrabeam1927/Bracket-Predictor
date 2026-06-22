@@ -453,8 +453,21 @@ nav button:focus-visible  { outline: 2px solid var(--gold); outline-offset: -2px
       <span style="opacity:.55">4th</span> eliminated.
     </div>
     <div class="live-bar">
-      <button class="btn-live" id="refreshBtn" onclick="fetchLiveStandings()">⟳ Fetch Live Standings</button>
-      <span class="fetch-status" id="fetchStatus">via API-Football · click to refresh</span>
+      <button class="btn-live" id="livePanelBtn" onclick="toggleLivePanel()">📊 Live Standings</button>
+      <span style="font-size:.78rem;color:var(--muted)">via API-Sports widget · reference while predicting</span>
+    </div>
+    <div id="livePanel" style="display:none;margin-bottom:1.25rem;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1rem;overflow-x:auto;">
+      <div id="wg-api-football-standings"
+        data-host="v3.football.api-sports.io"
+        data-key=""
+        data-league="1"
+        data-team=""
+        data-season="2026"
+        data-theme=""
+        data-show-errors="false"
+        data-show-logos="true"
+        class="wg_loader">
+      </div>
     </div>
     <div class="groups-grid" id="groupsGrid"></div>
     <div class="actions">
@@ -569,95 +582,28 @@ const ROUNDS       = ['r32', 'r16', 'qf', 'sf', 'fin'];
 const ROUND_LABELS = { r32:'Round of 32', r16:'Round of 16', qf:'Quarterfinals', sf:'Semifinals', fin:'Final' };
 const ROUND_SIZE   = { r32: 16, r16: 8, qf: 4, sf: 2, fin: 1 };
 
-// ── API-Football live standings ───────────────────────────────────────────
-// NOTE: keep this repo private to protect the key, or rotate it if exposed.
-const AF_KEY    = 'ddebc6df822a133a61b63bd9349ce61a';
-const AF_BASE   = 'https://v3.football.api-sports.io';  // direct API (not RapidAPI)
-const AF_LEAGUE = 1;     // FIFA World Cup
-const AF_SEASON = 2026;
+// ── API-Sports widget (live standings) ───────────────────────────────────
+// The direct REST API blocks browser requests (CORS). The widget script
+// proxies calls through their CDN — no server needed.
+const AF_KEY = 'ddebc6df822a133a61b63bd9349ce61a';
 
-// Maps API-Football team names → our TEAM_DATA names where they differ
-const AF_NAME_MAP = {
-  'United States':                'USA',
-  'Bosnia and Herzegovina':       'Bosnia & Herz.',
-  "Côte d'Ivoire":               'Ivory Coast',
-  "Cote d'Ivoire":               'Ivory Coast',
-  'Democratic Republic of Congo': 'DR Congo',
-  'Republic of Congo':            'DR Congo',
-  'Curacao':                      'Curaçao',
-  'Turkey':                       'Türkiye',
-  'Korea Republic':               'South Korea',
-  'Korea DPR':                    'South Korea',
-};
+let _widgetLoaded = false;
+function toggleLivePanel() {
+  const panel = document.getElementById('livePanel');
+  const btn   = document.getElementById('livePanelBtn');
+  const open  = panel.style.display === 'none' || !panel.style.display;
+  panel.style.display = open ? 'block' : 'none';
+  btn.textContent     = open ? '✕ Close Live Standings' : '📊 Live Standings';
 
-function afNormalize(name) { return AF_NAME_MAP[name] || name; }
-
-function afMatch(g, apiName) {
-  const norm  = afNormalize(apiName);
-  const teams = TEAM_DATA[g].map(t => t.n);
-  if (teams.includes(norm)) return norm;
-  const ci = teams.find(t => t.toLowerCase() === norm.toLowerCase());
-  if (ci) return ci;
-  const fw = norm.split(/[\s,&]/)[0].toLowerCase();
-  return teams.find(t => t.toLowerCase().startsWith(fw)) || norm;
-}
-
-async function fetchLiveStandings() {
-  const btn  = document.getElementById('refreshBtn');
-  const stat = document.getElementById('fetchStatus');
-  btn.disabled     = true;
-  stat.textContent = 'Fetching…';
-  stat.className   = 'fetch-status fetching';
-  try {
-    const url = `${AF_BASE}/standings?league=${AF_LEAGUE}&season=${AF_SEASON}`;
-    const res = await fetch(url, {
-      headers: { 'x-apisports-key': AF_KEY }
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-
-    const allGroups = data.response?.[0]?.league?.standings ?? [];
-    if (!allGroups.length) throw new Error('No standings in response');
-    let updated = 0;
-
-    for (const group of allGroups) {
-      if (!group.length) continue;
-      const m = (group[0].group || '').match(/Group\s+([A-L])/i);
-      if (!m) continue;
-      const g = m[1].toUpperCase();
-      if (!GROUPS.includes(g)) continue;
-
-      const parsed = group.map(e => ({
-        name: afMatch(g, e.team?.name || ''),
-        rank: e.rank ?? 99,
-        pld:  e.all?.played        ?? 0,
-        w:    e.all?.win           ?? 0,
-        d:    e.all?.draw          ?? 0,
-        l:    e.all?.lose          ?? 0,
-        gf:   e.all?.goals?.for    ?? 0,
-        ga:   e.all?.goals?.against ?? 0,
-        gd:   e.goalsDiff          ?? 0,
-        pts:  e.points             ?? 0,
-      })).sort((a, b) => a.rank - b.rank);
-
-      S.rankings[g] = parsed.map(p => p.name);
-      if (!S.stats) S.stats = {};
-      S.stats[g] = parsed;
-      updated++;
-    }
-
-    if (!updated) throw new Error('No recognised groups returned');
-    S.lastFetch = new Date().toISOString();
-    save();
-    renderGroups();
-    stat.textContent = `Live · ${updated} groups · ${new Date().toLocaleTimeString()}`;
-    stat.className   = 'fetch-status ok';
-  } catch (err) {
-    stat.textContent = `Error: ${err.message}`;
-    stat.className   = 'fetch-status err';
-    console.error('fetchLiveStandings:', err);
-  } finally {
-    btn.disabled = false;
+  if (open && !_widgetLoaded) {
+    // Inject key at runtime so it lives in one place (the JS constant above)
+    document.getElementById('wg-api-football-standings')
+            .setAttribute('data-key', AF_KEY);
+    const s = document.createElement('script');
+    s.type = 'module';
+    s.src  = 'https://widgets.api-sports.io/2.0.3/widgets.js';
+    document.body.appendChild(s);
+    _widgetLoaded = true;
   }
 }
 
