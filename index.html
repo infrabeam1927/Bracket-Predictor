@@ -538,8 +538,10 @@ const ROUNDS       = ['r32', 'r16', 'qf', 'sf', 'fin'];
 const ROUND_LABELS = { r32:'Round of 32', r16:'Round of 16', qf:'Quarterfinals', sf:'Semifinals', fin:'Final' };
 const ROUND_SIZE   = { r32: 16, r16: 8, qf: 4, sf: 2, fin: 1 };
 
-// ── Seed standings: June 21 2026 snapshot ────────────────────────────────
-// Groups A–H have played 2 matches; I–L have played 1.
+// ── Seed standings: June 23 2026 snapshot ────────────────────────────────
+// A–H: 2 games each. I: France/Iraq=2, Norway/Senegal=1 (play tonight).
+// J: all 2. K: Portugal/Uzbekistan=2, Colombia/Congo DR=1 (play tonight).
+// L: all 1 (England-Ghana + Panama-Croatia tonight).
 // GF/GA unavailable from source (null) → GD will display as —.
 const SEED_NAME_MAP = {
   'Korea Republic':          'South Korea',
@@ -598,22 +600,22 @@ const SEED_STANDINGS = {
     {team:'Saudi Arabia', P:2,W:0,D:1,L:1,GF:null,GA:null,Pts:1},
   ],
   I:[
+    {team:'France',  P:2,W:2,D:0,L:0,GF:null,GA:null,Pts:6},
     {team:'Norway',  P:1,W:1,D:0,L:0,GF:null,GA:null,Pts:3},
-    {team:'France',  P:1,W:1,D:0,L:0,GF:null,GA:null,Pts:3},
     {team:'Senegal', P:1,W:0,D:0,L:1,GF:null,GA:null,Pts:0},
-    {team:'Iraq',    P:1,W:0,D:0,L:1,GF:null,GA:null,Pts:0},
+    {team:'Iraq',    P:2,W:0,D:0,L:2,GF:null,GA:null,Pts:0},
   ],
   J:[
-    {team:'Argentina', P:1,W:1,D:0,L:0,GF:null,GA:null,Pts:3},
-    {team:'Austria',   P:1,W:1,D:0,L:0,GF:null,GA:null,Pts:3},
-    {team:'Jordan',    P:1,W:0,D:0,L:1,GF:null,GA:null,Pts:0},
-    {team:'Algeria',   P:1,W:0,D:0,L:1,GF:null,GA:null,Pts:0},
+    {team:'Argentina', P:2,W:2,D:0,L:0,GF:null,GA:null,Pts:6},
+    {team:'Austria',   P:2,W:1,D:0,L:1,GF:null,GA:null,Pts:3},
+    {team:'Jordan',    P:2,W:0,D:1,L:1,GF:null,GA:null,Pts:1},
+    {team:'Algeria',   P:2,W:0,D:1,L:1,GF:null,GA:null,Pts:1},
   ],
   K:[
+    {team:'Portugal',    P:2,W:1,D:1,L:0,GF:null,GA:null,Pts:4},
     {team:'Colombia',    P:1,W:1,D:0,L:0,GF:null,GA:null,Pts:3},
     {team:'Congo DR',    P:1,W:0,D:1,L:0,GF:null,GA:null,Pts:1},
-    {team:'Portugal',    P:1,W:0,D:1,L:0,GF:null,GA:null,Pts:1},
-    {team:'Uzbekistan',  P:1,W:0,D:0,L:1,GF:null,GA:null,Pts:0},
+    {team:'Uzbekistan',  P:2,W:0,D:0,L:2,GF:null,GA:null,Pts:0},
   ],
   L:[
     {team:'England',  P:1,W:1,D:0,L:0,GF:null,GA:null,Pts:3},
