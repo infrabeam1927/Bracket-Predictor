@@ -538,10 +538,8 @@ const ROUNDS       = ['r32', 'r16', 'qf', 'sf', 'fin'];
 const ROUND_LABELS = { r32:'Round of 32', r16:'Round of 16', qf:'Quarterfinals', sf:'Semifinals', fin:'Final' };
 const ROUND_SIZE   = { r32: 16, r16: 8, qf: 4, sf: 2, fin: 1 };
 
-// ── Seed standings: June 23 2026 snapshot ────────────────────────────────
-// A–H: 2 games each. I: France/Iraq=2, Norway/Senegal=1 (play tonight).
-// J: all 2. K: Portugal/Uzbekistan=2, Colombia/Congo DR=1 (play tonight).
-// L: all 1 (England-Ghana + Panama-Croatia tonight).
+// ── Seed standings: June 23 2026 (end of day) ────────────────────────────
+// All 12 groups have completed matchday 2. Matchday 3 starts Jun 25.
 // GF/GA unavailable from source (null) → GD will display as —.
 const SEED_NAME_MAP = {
   'Korea Republic':          'South Korea',
@@ -601,8 +599,8 @@ const SEED_STANDINGS = {
   ],
   I:[
     {team:'France',  P:2,W:2,D:0,L:0,GF:null,GA:null,Pts:6},
-    {team:'Norway',  P:1,W:1,D:0,L:0,GF:null,GA:null,Pts:3},
-    {team:'Senegal', P:1,W:0,D:0,L:1,GF:null,GA:null,Pts:0},
+    {team:'Norway',  P:2,W:2,D:0,L:0,GF:null,GA:null,Pts:6},
+    {team:'Senegal', P:2,W:0,D:0,L:2,GF:null,GA:null,Pts:0},
     {team:'Iraq',    P:2,W:0,D:0,L:2,GF:null,GA:null,Pts:0},
   ],
   J:[
@@ -612,16 +610,16 @@ const SEED_STANDINGS = {
     {team:'Algeria',   P:2,W:0,D:1,L:1,GF:null,GA:null,Pts:1},
   ],
   K:[
+    {team:'Colombia',    P:2,W:2,D:0,L:0,GF:null,GA:null,Pts:6},
     {team:'Portugal',    P:2,W:1,D:1,L:0,GF:null,GA:null,Pts:4},
-    {team:'Colombia',    P:1,W:1,D:0,L:0,GF:null,GA:null,Pts:3},
-    {team:'Congo DR',    P:1,W:0,D:1,L:0,GF:null,GA:null,Pts:1},
+    {team:'Congo DR',    P:2,W:0,D:1,L:1,GF:null,GA:null,Pts:1},
     {team:'Uzbekistan',  P:2,W:0,D:0,L:2,GF:null,GA:null,Pts:0},
   ],
   L:[
-    {team:'England',  P:1,W:1,D:0,L:0,GF:null,GA:null,Pts:3},
-    {team:'Ghana',    P:1,W:1,D:0,L:0,GF:null,GA:null,Pts:3},
-    {team:'Panama',   P:1,W:0,D:0,L:1,GF:null,GA:null,Pts:0},
-    {team:'Croatia',  P:1,W:0,D:0,L:1,GF:null,GA:null,Pts:0},
+    {team:'England',  P:2,W:1,D:1,L:0,GF:null,GA:null,Pts:4},
+    {team:'Ghana',    P:2,W:1,D:1,L:0,GF:null,GA:null,Pts:4},
+    {team:'Croatia',  P:2,W:1,D:0,L:1,GF:null,GA:null,Pts:3},
+    {team:'Panama',   P:2,W:0,D:0,L:2,GF:null,GA:null,Pts:0},
   ],
 };
 
