@@ -538,8 +538,8 @@ const ROUNDS       = ['r32', 'r16', 'qf', 'sf', 'fin'];
 const ROUND_LABELS = { r32:'Round of 32', r16:'Round of 16', qf:'Quarterfinals', sf:'Semifinals', fin:'Final' };
 const ROUND_SIZE   = { r32: 16, r16: 8, qf: 4, sf: 2, fin: 1 };
 
-// ── Seed standings: June 23 2026 (end of day) ────────────────────────────
-// All 12 groups have completed matchday 2. Matchday 3 starts Jun 25.
+// ── Seed standings: June 26 2026 (end of day) ────────────────────────────
+// Groups A–F completed matchday 3 (P:3). Groups G–L still at P:2.
 // GF/GA unavailable from source (null) → GD will display as —.
 const SEED_NAME_MAP = {
   'Korea Republic':          'South Korea',
@@ -550,40 +550,40 @@ const SEED_NAME_MAP = {
 };
 const SEED_STANDINGS = {
   A:[
-    {team:'Mexico',           P:2,W:2,D:0,L:0,GF:null,GA:null,Pts:6},
-    {team:'Korea Republic',   P:2,W:1,D:0,L:1,GF:null,GA:null,Pts:3},
-    {team:'Czechia',          P:2,W:0,D:1,L:1,GF:null,GA:null,Pts:1},
-    {team:'South Africa',     P:2,W:0,D:1,L:1,GF:null,GA:null,Pts:1},
+    {team:'Mexico',           P:3,W:3,D:0,L:0,GF:null,GA:null,Pts:9},
+    {team:'South Africa',     P:3,W:1,D:1,L:1,GF:null,GA:null,Pts:4},
+    {team:'Korea Republic',   P:3,W:1,D:0,L:2,GF:null,GA:null,Pts:3},
+    {team:'Czechia',          P:3,W:0,D:1,L:2,GF:null,GA:null,Pts:1},
   ],
   B:[
-    {team:'Canada',                      P:2,W:1,D:1,L:0,GF:null,GA:null,Pts:4},
-    {team:'Switzerland',                 P:2,W:1,D:1,L:0,GF:null,GA:null,Pts:4},
-    {team:'Bosnia and Herzegovina',      P:2,W:0,D:1,L:1,GF:null,GA:null,Pts:1},
-    {team:'Qatar',                       P:2,W:0,D:1,L:1,GF:null,GA:null,Pts:1},
+    {team:'Switzerland',                 P:3,W:2,D:1,L:0,GF:null,GA:null,Pts:7},
+    {team:'Canada',                      P:3,W:1,D:1,L:1,GF:null,GA:null,Pts:4},
+    {team:'Bosnia and Herzegovina',      P:3,W:1,D:1,L:1,GF:null,GA:null,Pts:4},
+    {team:'Qatar',                       P:3,W:0,D:1,L:2,GF:null,GA:null,Pts:1},
   ],
   C:[
-    {team:'Brazil',   P:2,W:1,D:1,L:0,GF:null,GA:null,Pts:4},
-    {team:'Morocco',  P:2,W:1,D:1,L:0,GF:null,GA:null,Pts:4},
-    {team:'Scotland', P:2,W:1,D:0,L:1,GF:null,GA:null,Pts:3},
-    {team:'Haiti',    P:2,W:0,D:0,L:2,GF:null,GA:null,Pts:0},
+    {team:'Brazil',   P:3,W:2,D:1,L:0,GF:null,GA:null,Pts:7},
+    {team:'Morocco',  P:3,W:2,D:1,L:0,GF:null,GA:null,Pts:7},
+    {team:'Scotland', P:3,W:1,D:0,L:2,GF:null,GA:null,Pts:3},
+    {team:'Haiti',    P:3,W:0,D:0,L:3,GF:null,GA:null,Pts:0},
   ],
   D:[
-    {team:'USA',       P:2,W:2,D:0,L:0,GF:null,GA:null,Pts:6},
-    {team:'Australia', P:2,W:1,D:0,L:1,GF:null,GA:null,Pts:3},
-    {team:'Paraguay',  P:2,W:1,D:0,L:1,GF:null,GA:null,Pts:3},
-    {team:'Türkiye',   P:2,W:0,D:0,L:2,GF:null,GA:null,Pts:0},
+    {team:'USA',       P:3,W:2,D:1,L:0,GF:null,GA:null,Pts:7},
+    {team:'Australia', P:3,W:1,D:1,L:1,GF:null,GA:null,Pts:4},
+    {team:'Paraguay',  P:3,W:1,D:1,L:1,GF:null,GA:null,Pts:4},
+    {team:'Türkiye',   P:3,W:0,D:1,L:2,GF:null,GA:null,Pts:1},
   ],
   E:[
-    {team:'Germany',     P:2,W:2,D:0,L:0,GF:null,GA:null,Pts:6},
-    {team:'Ivory Coast', P:2,W:1,D:0,L:1,GF:null,GA:null,Pts:3},
-    {team:'Ecuador',     P:2,W:0,D:1,L:1,GF:null,GA:null,Pts:1},
-    {team:'Curaçao',     P:2,W:0,D:1,L:1,GF:null,GA:null,Pts:1},
+    {team:'Germany',     P:3,W:2,D:0,L:1,GF:null,GA:null,Pts:6},
+    {team:'Ivory Coast', P:3,W:2,D:0,L:1,GF:null,GA:null,Pts:6},
+    {team:'Ecuador',     P:3,W:1,D:1,L:1,GF:null,GA:null,Pts:4},
+    {team:'Curaçao',     P:3,W:0,D:1,L:2,GF:null,GA:null,Pts:1},
   ],
   F:[
-    {team:'Netherlands', P:2,W:1,D:1,L:0,GF:null,GA:null,Pts:4},
-    {team:'Japan',       P:2,W:1,D:1,L:0,GF:null,GA:null,Pts:4},
-    {team:'Sweden',      P:2,W:1,D:0,L:1,GF:null,GA:null,Pts:3},
-    {team:'Tunisia',     P:2,W:0,D:0,L:2,GF:null,GA:null,Pts:0},
+    {team:'Netherlands', P:3,W:2,D:1,L:0,GF:null,GA:null,Pts:7},
+    {team:'Japan',       P:3,W:1,D:2,L:0,GF:null,GA:null,Pts:5},
+    {team:'Sweden',      P:3,W:1,D:1,L:1,GF:null,GA:null,Pts:4},
+    {team:'Tunisia',     P:3,W:0,D:0,L:3,GF:null,GA:null,Pts:0},
   ],
   G:[
     {team:'Egypt',       P:2,W:1,D:1,L:0,GF:null,GA:null,Pts:4},
