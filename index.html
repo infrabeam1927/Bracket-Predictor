@@ -538,8 +538,8 @@ const ROUNDS       = ['r32', 'r16', 'qf', 'sf', 'fin'];
 const ROUND_LABELS = { r32:'Round of 32', r16:'Round of 16', qf:'Quarterfinals', sf:'Semifinals', fin:'Final' };
 const ROUND_SIZE   = { r32: 16, r16: 8, qf: 4, sf: 2, fin: 1 };
 
-// ── Seed standings: June 26 2026 (end of day) ────────────────────────────
-// Groups A–F completed matchday 3 (P:3). Groups G–L still at P:2.
+// ── Seed standings: June 26 2026 (partial end of day) ────────────────────
+// Groups A–F and I completed matchday 3 (P:3). Groups G, H, J, K, L at P:2.
 // GF/GA unavailable from source (null) → GD will display as —.
 const SEED_NAME_MAP = {
   'Korea Republic':          'South Korea',
@@ -598,10 +598,10 @@ const SEED_STANDINGS = {
     {team:'Saudi Arabia', P:2,W:0,D:1,L:1,GF:null,GA:null,Pts:1},
   ],
   I:[
-    {team:'France',  P:2,W:2,D:0,L:0,GF:null,GA:null,Pts:6},
-    {team:'Norway',  P:2,W:2,D:0,L:0,GF:null,GA:null,Pts:6},
-    {team:'Senegal', P:2,W:0,D:0,L:2,GF:null,GA:null,Pts:0},
-    {team:'Iraq',    P:2,W:0,D:0,L:2,GF:null,GA:null,Pts:0},
+    {team:'France',  P:3,W:3,D:0,L:0,GF:null,GA:null,Pts:9},
+    {team:'Norway',  P:3,W:2,D:0,L:1,GF:null,GA:null,Pts:6},
+    {team:'Senegal', P:3,W:1,D:0,L:2,GF:null,GA:null,Pts:3},
+    {team:'Iraq',    P:3,W:0,D:0,L:3,GF:null,GA:null,Pts:0},
   ],
   J:[
     {team:'Argentina', P:2,W:2,D:0,L:0,GF:null,GA:null,Pts:6},
