@@ -46,36 +46,6 @@ header {
 header h1   { font-size: 1.35rem; font-weight: 700; color: var(--gold); letter-spacing: .03em; }
 header p    { font-size: .8rem; color: var(--muted); margin-top: .15rem; }
 
-/* ── Tab navigation ─────────────────────────────────────────────────── */
-nav {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  padding: 0 1rem;
-  overflow-x: auto;
-  gap: .15rem;
-}
-nav button {
-  background: none;
-  border: none;
-  border-bottom: 3px solid transparent;
-  color: var(--muted);
-  padding: .8rem 1.25rem;
-  cursor: pointer;
-  font-size: .85rem;
-  font-weight: 600;
-  letter-spacing: .04em;
-  white-space: nowrap;
-  transition: color .15s, border-color .15s;
-}
-nav button:hover          { color: var(--text); }
-nav button.active         { color: var(--gold); border-bottom-color: var(--gold); }
-nav button:focus-visible  { outline: 2px solid var(--gold); outline-offset: -2px; }
-
-/* ── Tab panels ─────────────────────────────────────────────────────── */
-.tab         { display: none; }
-.tab.active  { display: block; }
-
 /* ── Layout helpers ─────────────────────────────────────────────────── */
 .container {
   max-width: 1400px;
@@ -128,108 +98,6 @@ nav button:focus-visible  { outline: 2px solid var(--gold); outline-offset: -2px
   margin-bottom: 1rem;
 }
 
-/* ═══════════════════════════════════════════════════════════════════════
-   GROUP STAGE
-═══════════════════════════════════════════════════════════════════════ */
-.groups-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
-  gap: .9rem;
-}
-.group-card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  overflow: hidden;
-}
-.group-header {
-  background: linear-gradient(90deg, #192038, #1e2848);
-  padding: .55rem 1rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.group-header strong { font-size: .9rem; color: var(--gold); letter-spacing: .06em; }
-.group-header span   { font-size: .72rem; color: var(--muted); }
-
-.team-list { padding: .4rem; }
-.team-item {
-  display: flex;
-  align-items: center;
-  gap: .5rem;
-  padding: .45rem .5rem;
-  border-radius: 5px;
-  cursor: grab;
-  user-select: none;
-  border: 1px solid transparent;
-  transition: background .1s, border-color .1s;
-  margin-bottom: 2px;
-}
-.team-item:last-child  { margin-bottom: 0; }
-.team-item:hover       { background: rgba(255,255,255,.05); border-color: var(--border); }
-.team-item.dragging    { opacity: .3; cursor: grabbing; }
-.team-item.drag-over   { border-color: var(--gold); background: rgba(201,162,39,.12); }
-
-.rank-badge {
-  width: 20px; height: 20px;
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: .7rem; font-weight: 700;
-  flex-shrink: 0;
-}
-.rank-1 { background: var(--gold); color: #000; }
-.rank-2 { background: #8899aa; color: #000; }
-.rank-3 { background: #6b5b3e; color: #e8ddc8; }
-.rank-4 { background: #2a334d; color: var(--muted); }
-
-.team-flag { font-size: 1.2rem; flex-shrink: 0; line-height: 1; }
-.team-name { font-size: .82rem; font-weight: 500; flex: 1; }
-.move-btns { display: flex; flex-direction: column; gap: 1px; margin-left: auto; }
-.move-btn  {
-  background: none; border: none;
-  color: var(--muted); cursor: pointer;
-  padding: 0 4px; font-size: .65rem; line-height: 1.4;
-  border-radius: 3px; transition: background .1s, color .1s;
-}
-.move-btn:hover:not(:disabled) { background: var(--border); color: var(--text); }
-.move-btn:disabled             { opacity: .2; cursor: default; }
-
-/* ── Standings table header row ─────────────────────────────────────── */
-.stats-hdr {
-  display: flex;
-  align-items: center;
-  gap: .25rem;
-  padding: .18rem .5rem .18rem 0;
-  border-bottom: 1px solid var(--border);
-  background: rgba(255,255,255,.02);
-}
-.stats-hdr .sh-name { flex: 1; font-size: .6rem; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; padding-left: 3.35rem; }
-.stats-hdr .sh-col  { font-size: .6rem; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; text-align: right; flex-shrink: 0; }
-
-/* ── Stat columns in each team row ──────────────────────────────────── */
-.col-stat {
-  font-size: .72rem;
-  text-align: right;
-  flex-shrink: 0;
-  color: var(--muted);
-  font-variant-numeric: tabular-nums;
-}
-
-/* column widths — must match .stats-hdr .sh-col widths */
-.w-pld           { width: 18px; }
-.w-wdl           { width: 16px; }
-.w-gd            { width: 26px; }
-.w-pts           { width: 24px; color: var(--gold2); font-weight: 700; }
-.w-spc           { width: 30px; flex-shrink: 0; }  /* spacer matching move-btns */
-
-/* ── Group stage position zone highlights ───────────────────────────── */
-/* pos-1/2: green left-stripe (advancing), pos-3: amber (wildcard), pos-4: dimmed */
-.team-item.pos-1:not(.drag-over),
-.team-item.pos-2:not(.drag-over) { border-left: 3px solid rgba(46,204,113,.65); }
-.team-item.pos-3:not(.drag-over) { border-left: 3px solid rgba(243,156,18,.70); margin-top: 5px; }
-.team-item.pos-4                 { opacity: .5; margin-top: 5px; }
-.team-item.pos-4:hover           { opacity: .75; }
-
 /* ── Bracket match-number chip ──────────────────────────────────────── */
 .match-num {
   font-size: .58rem;
@@ -241,40 +109,6 @@ nav button:focus-visible  { outline: 2px solid var(--gold); outline-offset: -2px
   text-align: right;
   opacity: .75;
 }
-
-/* ═══════════════════════════════════════════════════════════════════════
-   THIRD-PLACE PICKER
-═══════════════════════════════════════════════════════════════════════ */
-.third-stats   { display: flex; align-items: baseline; gap: .75rem; margin-bottom: 1rem; }
-.third-counter { font-size: 1.5rem; font-weight: 800; color: var(--gold); }
-.third-counter small { font-size: .8rem; color: var(--muted); font-weight: 400; }
-.third-msg     { font-size: .82rem; color: var(--muted); }
-
-.third-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
-  gap: .65rem;
-}
-.third-card {
-  background: var(--card);
-  border: 2px solid var(--border);
-  border-radius: 8px;
-  padding: .7rem .9rem;
-  cursor: pointer;
-  transition: border-color .15s, background .15s;
-  display: flex;
-  align-items: center;
-  gap: .65rem;
-}
-.third-card:hover:not(.maxed)  { border-color: var(--gold); }
-.third-card.picked             { border-color: var(--green2); background: rgba(46,204,113,.1); }
-.third-card.maxed:not(.picked) { opacity: .35; cursor: not-allowed; }
-.third-flag  { font-size: 1.4rem; flex-shrink: 0; line-height: 1; }
-.third-info  { flex: 1; min-width: 0; }
-.third-name  { font-size: .82rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.third-grp   { font-size: .72rem; color: var(--muted); }
-.third-check { font-size: .9rem; color: var(--green2); opacity: 0; flex-shrink: 0; }
-.third-card.picked .third-check { opacity: 1; }
 
 /* ═══════════════════════════════════════════════════════════════════════
    KNOCKOUT BRACKET
@@ -377,15 +211,7 @@ nav button:focus-visible  { outline: 2px solid var(--gold); outline-offset: -2px
 /* ── Responsive ─────────────────────────────────────────────────────── */
 @media (max-width: 640px) {
   header h1             { font-size: 1.1rem; }
-  .groups-grid          { grid-template-columns: 1fr; }
-  nav button            { padding: .7rem .9rem; font-size: .78rem; }
   .container            { padding: 1rem; }
-  /* hide stat columns on narrow screens */
-  .col-stat, .stats-hdr .sh-col, .w-spc { display: none; }
-  .stats-hdr .sh-name   { padding-left: 0; }
-}
-@media (max-width: 380px) {
-  .groups-grid          { grid-template-columns: 1fr; }
 }
 </style>
 </head>
@@ -398,91 +224,50 @@ nav button:focus-visible  { outline: 2px solid var(--gold); outline-offset: -2px
   <span class="hdr-trophy">🏆</span>
   <div>
     <h1>2026 World Cup Bracket Predictor</h1>
-    <p>48 teams &middot; 12 groups &middot; Full knockout bracket</p>
+    <p>48 teams &middot; Round of 32 knockout bracket, seeded from current group standings</p>
   </div>
 </header>
-
-<!-- ════════════════════════════════════════════
-     NAVIGATION
-════════════════════════════════════════════ -->
-<nav>
-  <button class="active" onclick="goTab('groups')">① Group Stage</button>
-  <button onclick="goTab('third')">② Third Place</button>
-  <button onclick="goTab('bracket')">③ Knockout Bracket</button>
-</nav>
 
 <!-- ════════════════════════════════════════════
      MAIN CONTENT
 ════════════════════════════════════════════ -->
 <div class="container">
 
-  <!-- ── Tab 1: Group Stage ── -->
-  <div id="tab-groups" class="tab active">
-    <div class="section-title">Group Stage Rankings</div>
-    <div class="section-sub">
-      Drag teams or use ▲▼ to set your predicted group finish order.
-      <span style="color:rgba(46,204,113,.9)">&#9646; 1st–2nd</span> advance &middot;
-      <span style="color:rgba(243,156,18,.9)">&#9646; 3rd</span> wildcard &middot;
-      <span style="opacity:.55">4th</span> eliminated.
-    </div>
-    <div class="groups-grid" id="groupsGrid"></div>
-    <div class="actions">
-      <button class="btn btn-rand" onclick="randomizeGroups()">🎲 Randomize All Groups</button>
-      <button class="btn btn-gold" onclick="goTab('third')">Next: Select Third-Place Teams →</button>
-    </div>
+  <div class="section-title">Round of 32 Bracket</div>
+  <div class="section-sub">
+    Seeded automatically from the latest group standings: group winners and runners-up fill the direct slots,
+    and the 8 best third-place teams (by points, then goal difference/goals scored) fill the wildcard slots.
+    Click any team below to pick a winner and watch them advance.
   </div>
 
-  <!-- ── Tab 2: Third Place ── -->
-  <div id="tab-third" class="tab">
-    <div class="section-title">Third-Place Wildcard Selection</div>
-    <div class="section-sub">
-      Pick exactly 8 of the 12 third-place finishers to advance to the Round of 32.
-      Click a card to select or deselect.
-    </div>
-    <div class="third-stats">
-      <span class="third-counter" id="thirdCountEl">0 <small>/ 8 selected</small></span>
-      <span class="third-msg" id="thirdMsgEl"></span>
-    </div>
-    <div class="third-grid" id="thirdGrid"></div>
-    <div class="actions">
-      <button class="btn btn-rand" onclick="randomizeThird()">🎲 Randomize Picks</button>
-      <button class="btn btn-ghost" onclick="goTab('groups')">← Back to Groups</button>
-      <button class="btn btn-gold" id="genBtn" onclick="doBracket()" disabled>Generate Bracket →</button>
-    </div>
+  <!-- Champion reveal (hidden until Final is complete) -->
+  <div id="champBanner" onclick="undoChampion()">
+    <span class="ban-trophy">🏆</span>
+    <h2>2026 World Cup Champion</h2>
+    <div class="ban-flag" id="champFlag"></div>
+    <div class="ban-name" id="champName"></div>
+    <div class="ban-sub">Click to undo pick</div>
   </div>
 
-  <!-- ── Tab 3: Knockout Bracket ── -->
-  <div id="tab-bracket" class="tab">
-    <!-- Champion reveal (hidden until Final is complete) -->
-    <div id="champBanner" onclick="undoChampion()">
-      <span class="ban-trophy">🏆</span>
-      <h2>2026 World Cup Champion</h2>
-      <div class="ban-flag" id="champFlag"></div>
-      <div class="ban-name" id="champName"></div>
-      <div class="ban-sub">Click to undo pick</div>
-    </div>
-
-    <div class="actions" style="margin-bottom:1rem; margin-top:0">
-      <button class="btn btn-rand" onclick="randomizeBracket()">🎲 Randomize Bracket</button>
-      <button class="btn btn-gold" onclick="regenBracket()">↺ Regenerate from Groups</button>
-      <button class="btn btn-danger" onclick="resetAll()">✕ Reset Everything</button>
-    </div>
-    <div class="info-tip">
-      Click any team to mark them as the winner — they advance automatically.
-      Click a highlighted winner again to undo that pick.
-    </div>
-    <div class="bracket-scroll">
-      <div class="bracket" id="bracketEl"></div>
-    </div>
+  <div class="actions" style="margin-bottom:1rem; margin-top:0">
+    <button class="btn btn-rand" onclick="randomizeBracket()">🎲 Randomize Bracket</button>
+    <button class="btn btn-gold" onclick="regenBracket()">↺ Regenerate from Standings</button>
+    <button class="btn btn-danger" onclick="resetAll()">✕ Reset Everything</button>
+  </div>
+  <div class="info-tip">
+    Click any team to mark them as the winner — they advance automatically.
+    Click a highlighted winner again to undo that pick.
+  </div>
+  <div class="bracket-scroll">
+    <div class="bracket" id="bracketEl"></div>
   </div>
 
 </div><!-- /.container -->
 
 <script>
 // ═══════════════════════════════════════════════════════════════════════
-// STEP 1 SCAFFOLD — data, state, and tab navigation wired up.
-// Group stage rendering, third-place picker, and bracket logic
-// will be filled in subsequent steps.
+// Round of 32 onward. Group standings feed the bracket directly — there
+// is no interactive group-stage or third-place picker UI.
 // ═══════════════════════════════════════════════════════════════════════
 
 // ── Team data ───────────────────────────────────────────────────────────
@@ -627,9 +412,9 @@ const SEED_STANDINGS = {
 function defaultState() {
   return {
     rankings: Object.fromEntries(GROUPS.map(g => [g, TEAM_DATA[g].map(t => t.n)])),
-    picks:    [],        // up to 8 group letters, third-place wildcards
+    picks:    [],        // the 8 group letters whose 3rd-place team got the wildcard, auto-computed
     bracket:  newBracket(),
-    ready:    false,     // true after bracket has been generated once
+    ready:    false,     // true after the bracket has been generated once
     stats:    null,      // { [groupLetter]: [{name,pld,w,d,l,gf,ga,gd,pts}, ...] }
   };
 }
@@ -667,26 +452,6 @@ function applySeedStandings() {
   save();
 }
 
-// Returns a clean standings array for group g, merging rankings + stats.
-function getGroupStandings(g) {
-  const stats = S.stats?.[g];
-  return ranked(g).map(name => {
-    const ts = stats?.find(s => s.name === name);
-    return ts ? { ...ts } : { name, pld:0, w:0, d:0, l:0, gf:null, ga:null, gd:null, pts:0 };
-  });
-}
-
-// ── Tab navigation ───────────────────────────────────────────────────────
-function goTab(name) {
-  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-  document.getElementById('tab-' + name).classList.add('active');
-  const idx = ['groups','third','bracket'].indexOf(name);
-  document.querySelectorAll('nav button')[idx].classList.add('active');
-  if (name === 'third')   renderThird();
-  if (name === 'bracket') { if (S.ready) renderBracket(); }
-}
-
 // ── Helpers ──────────────────────────────────────────────────────────────
 function teamByName(n) {
   for (const g of GROUPS) { const t = TEAM_DATA[g].find(t => t.n === n); if (t) return t; }
@@ -694,7 +459,20 @@ function teamByName(n) {
 }
 function ranked(g) { return S.rankings[g] || TEAM_DATA[g].map(t => t.n); }
 
-// Assign the 8 selected 3rd-place groups to the 8 wildcard slots in R32_DEFS.
+// Picks the 8 best 3rd-place finishers across all 12 groups, FIFA-style:
+// ranked by points, then goal difference, then goals scored, then wins.
+function autoPickThirds() {
+  return GROUPS.map(g => {
+    const name = ranked(g)[2];
+    const ts   = S.stats?.[g]?.find(s => s.name === name);
+    return { g, pts: ts?.pts ?? 0, gd: ts?.gd ?? 0, gf: ts?.gf ?? 0, w: ts?.w ?? 0 };
+  })
+  .sort((a, b) => b.pts - a.pts || b.gd - a.gd || b.gf - a.gf || b.w - a.w || a.g.localeCompare(b.g))
+  .slice(0, 8)
+  .map(x => x.g);
+}
+
+// Assign the 8 wildcard groups (S.picks) to the 8 wildcard slots in R32_DEFS.
 // Each slot has a pool constraint (a string of allowed group letters).
 // We use backtracking DFS so we never get stuck in a greedy dead-end.
 // Slots are attempted in ascending match-number order to match the official draw.
@@ -733,186 +511,10 @@ function nextSlot(round, mi) {
 }
 
 // ════════════════════════════════════════════════════════════════════════
-// GROUP STAGE
-// ════════════════════════════════════════════════════════════════════════
-function renderGroups() {
-  const grid = document.getElementById('groupsGrid');
-  grid.innerHTML = '';
-  GROUPS.forEach(g => grid.appendChild(buildGroupCard(g)));
-}
-
-function buildGroupCard(g) {
-  const r = ranked(g);
-  const gStats = S.stats?.[g];
-
-  const card = document.createElement('div');
-  card.className = 'group-card';
-
-  const hdr = document.createElement('div');
-  hdr.className = 'group-header';
-  hdr.innerHTML = `<strong>GROUP ${g}</strong><span>${gStats ? '● Live' : 'drag to reorder'}</span>`;
-  card.appendChild(hdr);
-
-  // Column header row
-  const sh = document.createElement('div');
-  sh.className = 'stats-hdr';
-  sh.innerHTML = `
-    <span class="sh-name">Team</span>
-    <span class="sh-col w-pld" title="Played">P</span>
-    <span class="sh-col w-wdl" title="Wins">W</span>
-    <span class="sh-col w-wdl" title="Draws">D</span>
-    <span class="sh-col w-wdl" title="Losses">L</span>
-    <span class="sh-col w-gd"  title="Goal difference">GD</span>
-    <span class="sh-col w-pts" title="Points">Pts</span>
-    <span class="w-spc"></span>`;
-  card.appendChild(sh);
-
-  const list = document.createElement('div');
-  list.className = 'team-list';
-
-  r.forEach((name, i) => {
-    const t  = teamByName(name);
-    const ts  = gStats?.find(s => s.name === name);
-    const fmt = (x) => (ts && x != null) ? String(x) : '—';
-    const gd  = (ts && ts.gd != null) ? (ts.gd > 0 ? '+' : '') + ts.gd : '—';
-
-    const row = document.createElement('div');
-    row.className = `team-item pos-${i + 1}`;
-    row.draggable = true;
-    row.dataset.g = g;
-    row.dataset.i = i;
-    row.dataset.n = name;
-    row.innerHTML = `
-      <span class="rank-badge rank-${i + 1}">${i + 1}</span>
-      <span class="team-flag">${t.f}</span>
-      <span class="team-name">${name}</span>
-      <span class="col-stat w-pld">${fmt(ts?.pld)}</span>
-      <span class="col-stat w-wdl">${fmt(ts?.w)}</span>
-      <span class="col-stat w-wdl">${fmt(ts?.d)}</span>
-      <span class="col-stat w-wdl">${fmt(ts?.l)}</span>
-      <span class="col-stat w-gd">${gd}</span>
-      <span class="col-stat w-pts">${fmt(ts?.pts)}</span>
-      <div class="move-btns">
-        <button class="move-btn" ${i === 0 ? 'disabled' : ''}
-                onclick="mv('${g}',${i},-1)" title="Move up">▲</button>
-        <button class="move-btn" ${i === r.length - 1 ? 'disabled' : ''}
-                onclick="mv('${g}',${i},1)" title="Move down">▼</button>
-      </div>`;
-
-    row.addEventListener('dragstart', e => {
-      _drag = e.currentTarget;
-      e.currentTarget.classList.add('dragging');
-      e.dataTransfer.effectAllowed = 'move';
-    });
-    row.addEventListener('dragover', e => {
-      e.preventDefault();
-      if (e.currentTarget !== _drag) {
-        clearDragOver();
-        e.currentTarget.classList.add('drag-over');
-      }
-    });
-    row.addEventListener('dragleave', e => e.currentTarget.classList.remove('drag-over'));
-    row.addEventListener('drop', onDrop);
-    row.addEventListener('dragend', () => {
-      clearDragOver();
-      if (_drag) _drag.classList.remove('dragging');
-      _drag = null;
-    });
-
-    list.appendChild(row);
-  });
-
-  card.appendChild(list);
-  return card;
-}
-
-let _drag = null;
-function clearDragOver() {
-  document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
-}
-
-function onDrop(e) {
-  e.preventDefault();
-  const tgt = e.currentTarget;
-  tgt.classList.remove('drag-over');
-  if (!_drag || _drag === tgt) return;
-  const g = _drag.dataset.g;
-  if (tgt.dataset.g !== g) return;          // cross-group drops ignored
-  const from = +_drag.dataset.i;
-  const to   = +tgt.dataset.i;
-  const r = [...ranked(g)];
-  r.splice(to, 0, r.splice(from, 1)[0]);
-  S.rankings[g] = r;
-  save();
-  renderGroups();
-}
-
-function mv(g, i, dir) {
-  const r = [...ranked(g)];
-  const j = i + dir;
-  if (j < 0 || j >= r.length) return;
-  [r[i], r[j]] = [r[j], r[i]];
-  S.rankings[g] = r;
-  save();
-  renderGroups();
-}
-
-// ════════════════════════════════════════════════════════════════════════
-// THIRD-PLACE WILDCARD PICKER
-// ════════════════════════════════════════════════════════════════════════
-function renderThird() {
-  const grid = document.getElementById('thirdGrid');
-  grid.innerHTML = '';
-  const cnt  = S.picks.length;
-  const full = cnt >= 8;
-
-  document.getElementById('thirdCountEl').innerHTML = `${cnt} <small>/ 8 selected</small>`;
-  document.getElementById('thirdMsgEl').textContent =
-    cnt < 8 ? `Select ${8 - cnt} more team${8 - cnt !== 1 ? 's' : ''} to continue`
-            : 'All 8 picks made — ready to generate!';
-
-  const btn = document.getElementById('genBtn');
-  btn.disabled = cnt < 8;
-
-  GROUPS.forEach(g => {
-    const name = ranked(g)[2];          // 3rd-place team in this group
-    const t    = teamByName(name);
-    const sel  = S.picks.includes(g);
-    const maxed = full && !sel;
-
-    const card = document.createElement('div');
-    card.className = `third-card${sel ? ' picked' : ''}${maxed ? ' maxed' : ''}`;
-    card.innerHTML = `
-      <span class="third-flag">${t.f}</span>
-      <div class="third-info">
-        <div class="third-name">${name}</div>
-        <div class="third-grp">Group ${g} · 3rd place</div>
-      </div>
-      <span class="third-check">✓</span>`;
-
-    if (!maxed) card.addEventListener('click', () => togglePick(g));
-    grid.appendChild(card);
-  });
-}
-
-function togglePick(g) {
-  const idx = S.picks.indexOf(g);
-  if (idx >= 0)            S.picks.splice(idx, 1);
-  else if (S.picks.length < 8) S.picks.push(g);
-  save();
-  renderThird();
-}
-
-function doBracket() {
-  if (S.picks.length < 8) return;
-  genBracket();
-  goTab('bracket');
-}
-
-// ════════════════════════════════════════════════════════════════════════
 // BRACKET GENERATION
 // ════════════════════════════════════════════════════════════════════════
 function genBracket() {
+  S.picks   = autoPickThirds();
   S.bracket = newBracket();
 
   const wcAssign = assign3rdPlaceTeams();  // { defIndex: groupLetter }
@@ -940,7 +542,7 @@ function genBracket() {
 }
 
 function regenBracket() {
-  if (!confirm('Regenerate the bracket from your current group rankings?\nAll knockout picks will be cleared.')) return;
+  if (!confirm('Regenerate the bracket from the latest standings?\nAll knockout picks will be cleared.')) return;
   genBracket();
   renderBracket();
 }
@@ -1080,17 +682,12 @@ function undoChampion() {
 // RESET
 // ════════════════════════════════════════════════════════════════════════
 function resetAll() {
-  if (!confirm('Reset everything? All rankings, picks, and bracket results will return to defaults.')) return;
+  if (!confirm('Reset everything? The bracket will be rebuilt from the latest seed standings and all knockout picks will be cleared.')) return;
   S = defaultState();
-  save();
-  renderGroups();
-  // Clear third-place counter display without fully rendering the tab
-  document.getElementById('thirdCountEl').innerHTML = '0 <small>/ 8 selected</small>';
-  document.getElementById('thirdMsgEl').textContent = '';
-  document.getElementById('genBtn').disabled = true;
+  applySeedStandings();
+  genBracket();
   document.getElementById('champBanner').classList.remove('show');
-  document.getElementById('bracketEl').innerHTML = '';
-  goTab('groups');
+  renderBracket();
 }
 
 // ════════════════════════════════════════════════════════════════════════
@@ -1104,27 +701,11 @@ function shuffle(arr) {
   return arr;
 }
 
-// Tab ①: shuffle every group's team order independently
-function randomizeGroups() {
-  GROUPS.forEach(g => { S.rankings[g] = shuffle([...ranked(g)]); });
-  save();
-  renderGroups();
-}
-
-// Tab ②: randomly pick 8 of the 12 groups as wildcard qualifiers
-function randomizeThird() {
-  S.picks = shuffle([...GROUPS]).slice(0, 8);
-  save();
-  renderThird();
-}
-
-// Tab ③: pick a random winner for every match, round by round so each
-//        round's teams are populated before its winners are chosen.
-//        If the bracket hasn't been generated yet, build it first
-//        (auto-filling third-place picks too if still empty).
+// Pick a random winner for every match, round by round so each round's
+// teams are populated before its winners are chosen. Re-seeds R32 from
+// the current standings first, clearing all winners.
 function randomizeBracket() {
-  if (S.picks.length < 8) randomizeThird();
-  genBracket(); // re-seeds R32 from current rankings, clears all winners
+  genBracket();
 
   for (const r of ROUNDS) {
     S.bracket[r].forEach((m, i) => {
@@ -1149,7 +730,8 @@ function randomizeBracket() {
 // ── Boot ─────────────────────────────────────────────────────────────────
 load();
 if (!S.stats) applySeedStandings();
-renderGroups();
+if (!S.ready) genBracket();
+renderBracket();
 </script>
 </body>
 </html>
