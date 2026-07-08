@@ -292,18 +292,31 @@ const ACTUAL_R32 = [
   {t1:'France',      f1:'🇫🇷', t2:'Sweden',        f2:'🇸🇪', w:'France'},       // M77 — France 3-0
   {t1:'South Africa',f1:'🇿🇦', t2:'Canada',        f2:'🇨🇦', w:'Canada'},       // M73 — Canada 1-0
   {t1:'Netherlands', f1:'🇳🇱', t2:'Morocco',       f2:'🇲🇦', w:'Morocco'},      // M75 — Morocco 3-2 pens
-  {t1:'Portugal',    f1:'🇵🇹', t2:'Croatia',       f2:'🇭🇷', w:null},           // M83 — Jul 2
-  {t1:'Spain',       f1:'🇪🇸', t2:'Austria',       f2:'🇦🇹', w:null},           // M84 — Jul 2
-  {t1:'USA',         f1:'🇺🇸', t2:'Bosnia & Herz.',f2:'🇧🇦', w:null},           // M81 — Jul 1/2
+  {t1:'Portugal',    f1:'🇵🇹', t2:'Croatia',       f2:'🇭🇷', w:'Portugal'},    // M83 — Portugal 2-1
+  {t1:'Spain',       f1:'🇪🇸', t2:'Austria',       f2:'🇦🇹', w:'Spain'},        // M84 — Spain 3-0
+  {t1:'USA',         f1:'🇺🇸', t2:'Bosnia & Herz.',f2:'🇧🇦', w:'USA'},          // M81 — USA 2-0
   {t1:'Belgium',     f1:'🇧🇪', t2:'Senegal',       f2:'🇸🇳', w:'Belgium'},      // M82 — Belgium 3-2 AET
   {t1:'Brazil',      f1:'🇧🇷', t2:'Japan',         f2:'🇯🇵', w:'Brazil'},       // M76 — Brazil 2-1
   {t1:'Ivory Coast', f1:'🇨🇮', t2:'Norway',        f2:'🇳🇴', w:'Norway'},       // M78 — Norway 2-1
   {t1:'Mexico',      f1:'🇲🇽', t2:'Ecuador',       f2:'🇪🇨', w:'Mexico'},       // M79 — Mexico 2-0
   {t1:'England',     f1:'🏴󠁧󠁢󠁥󠁮󠁧󠁿', t2:'DR Congo',    f2:'🇨🇩', w:'England'},      // M80 — England 2-1
-  {t1:'Argentina',   f1:'🇦🇷', t2:'Cape Verde',    f2:'🇨🇻', w:null},           // M86 — Jul 3
-  {t1:'Australia',   f1:'🇦🇺', t2:'Egypt',         f2:'🇪🇬', w:null},           // M88 — Jul 3
-  {t1:'Switzerland', f1:'🇨🇭', t2:'Algeria',       f2:'🇩🇿', w:null},           // M85 — Jul 2
-  {t1:'Colombia',    f1:'🇨🇴', t2:'Ghana',         f2:'🇬🇭', w:null},           // M87 — Jul 4
+  {t1:'Argentina',   f1:'🇦🇷', t2:'Cape Verde',    f2:'🇨🇻', w:'Argentina'},    // M86 — Argentina 3-2
+  {t1:'Australia',   f1:'🇦🇺', t2:'Egypt',         f2:'🇪🇬', w:'Egypt'},        // M88 — Egypt 4-2 pens
+  {t1:'Switzerland', f1:'🇨🇭', t2:'Algeria',       f2:'🇩🇿', w:'Switzerland'}, // M85 — Switzerland 2-0
+  {t1:'Colombia',    f1:'🇨🇴', t2:'Ghana',         f2:'🇬🇭', w:'Colombia'},     // M87 — Colombia 1-0
+];
+
+// Confirmed R16 results (Jul 5–8, 2026).
+// Index order matches MATCH_NUMS.r16 positions — pairs feed the same QF slot.
+const ACTUAL_R16 = [
+  {t1:'Paraguay',    f1:'🇵🇾', t2:'France',       f2:'🇫🇷', w:'France'},        // M89 — France won
+  {t1:'Canada',      f1:'🇨🇦', t2:'Morocco',      f2:'🇲🇦', w:'Morocco'},       // M90 — Morocco 3-0
+  {t1:'Portugal',    f1:'🇵🇹', t2:'Spain',        f2:'🇪🇸', w:'Spain'},         // M93 — Spain 1-0
+  {t1:'USA',         f1:'🇺🇸', t2:'Belgium',      f2:'🇧🇪', w:'Belgium'},       // M94 — Belgium 4-1
+  {t1:'Brazil',      f1:'🇧🇷', t2:'Norway',       f2:'🇳🇴', w:'Norway'},        // M91 — Norway won
+  {t1:'Mexico',      f1:'🇲🇽', t2:'England',      f2:'🏴󠁧󠁢󠁥󠁮󠁧󠁿', w:'England'},      // M92 — England 3-2
+  {t1:'Argentina',   f1:'🇦🇷', t2:'Egypt',        f2:'🇪🇬', w:'Argentina'},     // M95 — Argentina 3-2
+  {t1:'Switzerland', f1:'🇨🇭', t2:'Colombia',     f2:'🇨🇴', w:'Switzerland'},   // M96 — Switzerland 4-3 pens
 ];
 
 // FIFA official match numbers for each round slot, used for display only.
@@ -335,10 +348,10 @@ function newBracket() {
 let S = defaultState();
 
 // ── Persistence ──────────────────────────────────────────────────────────
-function save() { try { localStorage.setItem('wc26_v5', JSON.stringify(S)); } catch(_) {} }
+function save() { try { localStorage.setItem('wc26_v6', JSON.stringify(S)); } catch(_) {} }
 function load() {
   try {
-    const raw = localStorage.getItem('wc26_v5');
+    const raw = localStorage.getItem('wc26_v6');
     if (raw) S = JSON.parse(raw);
   } catch(_) {}
 }
@@ -368,13 +381,29 @@ function genBracket() {
     m.t2 = match.t2; m.f2 = match.f2;
   });
 
-  // Pre-fill confirmed winners and cascade them into R16 slots
+  // Pre-fill confirmed R32 winners and cascade them into R16 slots
   ACTUAL_R32.forEach((match, i) => {
     if (!match.w) return;
     const m    = S.bracket.r32[i];
     const flag = match.w === match.t1 ? match.f1 : match.f2;
     m.w = match.w;
     const ns = nextSlot('r32', i);
+    if (ns) {
+      const nm = S.bracket[ns.round][ns.idx];
+      if (ns.slot === 0) { nm.t1 = match.w; nm.f1 = flag; }
+      else               { nm.t2 = match.w; nm.f2 = flag; }
+    }
+  });
+
+  // Load confirmed R16 teams (overrides cascaded values with actuals) and cascade winners into QF slots
+  ACTUAL_R16.forEach((match, i) => {
+    const m = S.bracket.r16[i];
+    m.t1 = match.t1; m.f1 = match.f1;
+    m.t2 = match.t2; m.f2 = match.f2;
+    if (!match.w) return;
+    const flag = match.w === match.t1 ? match.f1 : match.f2;
+    m.w = match.w;
+    const ns = nextSlot('r16', i);
     if (ns) {
       const nm = S.bracket[ns.round][ns.idx];
       if (ns.slot === 0) { nm.t1 = match.w; nm.f1 = flag; }
