@@ -319,6 +319,15 @@ const ACTUAL_R16 = [
   {t1:'Switzerland', f1:'🇨🇭', t2:'Colombia',     f2:'🇨🇴', w:'Switzerland'},   // M96 — Switzerland 4-3 pens
 ];
 
+// Confirmed QF results (Jul 9–11, 2026).
+// Index order matches MATCH_NUMS.qf positions — pairs feed the same SF slot.
+const ACTUAL_QF = [
+  {t1:'France',      f1:'🇫🇷', t2:'Morocco',      f2:'🇲🇦', w:'France'},        // M97 — France 2-0
+  {t1:'Spain',       f1:'🇪🇸', t2:'Belgium',      f2:'🇧🇪', w:'Spain'},         // M98 — Spain 2-1
+  {t1:'Norway',      f1:'🇳🇴', t2:'England',      f2:'🏴󠁧󠁢󠁥󠁮󠁧󠁿', w:'England'},      // M99 — England 2-1 AET
+  {t1:'Argentina',   f1:'🇦🇷', t2:'Switzerland',  f2:'🇨🇭', w:'Argentina'},     // M100 — Argentina 3-1
+];
+
 // FIFA official match numbers for each round slot, used for display only.
 const MATCH_NUMS = {
   r32: [74, 77, 73, 75, 83, 84, 81, 82, 76, 78, 79, 80, 86, 88, 85, 87],
@@ -348,10 +357,10 @@ function newBracket() {
 let S = defaultState();
 
 // ── Persistence ──────────────────────────────────────────────────────────
-function save() { try { localStorage.setItem('wc26_v6', JSON.stringify(S)); } catch(_) {} }
+function save() { try { localStorage.setItem('wc26_v7', JSON.stringify(S)); } catch(_) {} }
 function load() {
   try {
-    const raw = localStorage.getItem('wc26_v6');
+    const raw = localStorage.getItem('wc26_v7');
     if (raw) S = JSON.parse(raw);
   } catch(_) {}
 }
@@ -404,6 +413,22 @@ function genBracket() {
     const flag = match.w === match.t1 ? match.f1 : match.f2;
     m.w = match.w;
     const ns = nextSlot('r16', i);
+    if (ns) {
+      const nm = S.bracket[ns.round][ns.idx];
+      if (ns.slot === 0) { nm.t1 = match.w; nm.f1 = flag; }
+      else               { nm.t2 = match.w; nm.f2 = flag; }
+    }
+  });
+
+  // Load confirmed QF teams (overrides cascaded values with actuals) and cascade winners into SF slots
+  ACTUAL_QF.forEach((match, i) => {
+    const m = S.bracket.qf[i];
+    m.t1 = match.t1; m.f1 = match.f1;
+    m.t2 = match.t2; m.f2 = match.f2;
+    if (!match.w) return;
+    const flag = match.w === match.t1 ? match.f1 : match.f2;
+    m.w = match.w;
+    const ns = nextSlot('qf', i);
     if (ns) {
       const nm = S.bracket[ns.round][ns.idx];
       if (ns.slot === 0) { nm.t1 = match.w; nm.f1 = flag; }
