@@ -121,16 +121,17 @@ header p    { font-size: .8rem; color: var(--muted); margin-top: .15rem; }
 .bracket {
   display: flex;
   min-width: 960px;
-  height: 840px;
+  height: 840px;    /* overridden by JS layoutBracket() */
+  position: relative;
 }
 .round-col {
   display: flex;
   flex-direction: column;
   flex: 1;
   min-width: 155px;
-  border-right: 1px solid var(--border);
+  padding-right: 28px;  /* space for SVG connector lines */
 }
-.round-col:last-child { border-right: none; min-width: 165px; }
+.round-col:last-child { min-width: 165px; padding-right: 0; }
 
 .round-label {
   text-align: center;
@@ -145,10 +146,7 @@ header p    { font-size: .8rem; color: var(--muted); margin-top: .15rem; }
 
 .matches-wrap {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-around;
-  padding: .3rem .25rem;
+  position: relative;
 }
 
 .match-box {
@@ -156,7 +154,6 @@ header p    { font-size: .8rem; color: var(--muted); margin-top: .15rem; }
   border-radius: 6px;
   overflow: hidden;
   background: var(--card2);
-  margin: .1rem;
 }
 .round-col:last-child .match-box {
   border-color: var(--gold);
@@ -224,7 +221,7 @@ header p    { font-size: .8rem; color: var(--muted); margin-top: .15rem; }
   <span class="hdr-trophy">🏆</span>
   <div>
     <h1>2026 World Cup Bracket Predictor</h1>
-    <p>48 teams &middot; Round of 32 knockout bracket, seeded from current group standings</p>
+    <p>48 teams &middot; Official 2026 FIFA World Cup knockout bracket — live results</p>
   </div>
 </header>
 
@@ -235,9 +232,8 @@ header p    { font-size: .8rem; color: var(--muted); margin-top: .15rem; }
 
   <div class="section-title">Round of 32 Bracket</div>
   <div class="section-sub">
-    Seeded automatically from the latest group standings: group winners and runners-up fill the direct slots,
-    and the 8 best third-place teams (by points, then goal difference/goals scored) fill the wildcard slots.
-    Click any team below to pick a winner and watch them advance.
+    Official 2026 FIFA World Cup bracket. Confirmed match results are pre-filled automatically.
+    Click any TBD match to predict a winner and watch them advance through the bracket.
   </div>
 
   <!-- Champion reveal (hidden until Final is complete) -->
@@ -251,7 +247,7 @@ header p    { font-size: .8rem; color: var(--muted); margin-top: .15rem; }
 
   <div class="actions" style="margin-bottom:1rem; margin-top:0">
     <button class="btn btn-rand" onclick="randomizeBracket()">🎲 Randomize Bracket</button>
-    <button class="btn btn-gold" onclick="regenBracket()">↺ Regenerate from Standings</button>
+    <button class="btn btn-gold" onclick="regenBracket()">↺ Reset Picks</button>
     <button class="btn btn-danger" onclick="resetAll()">✕ Reset Everything</button>
   </div>
   <div class="info-tip">
@@ -288,26 +284,48 @@ const TEAM_DATA = {
 };
 const GROUPS = Object.keys(TEAM_DATA); // ['A'..'L']
 
-// Official 2026 R32 fixture definitions (matches M73–M88).
-// Array order is chosen so Math.floor(i/2) maps each pair to the correct R16 slot.
-// 't':'P' = 1st/2nd place finisher; 't':'3' = a 3rd-place wildcard from a pool of groups.
-const R32_DEFS = [
-  [{t:'P',pos:1,g:'E'}, {t:'3',pool:'ABCDF'}],   // M74  → R16 slot 0
-  [{t:'P',pos:1,g:'I'}, {t:'3',pool:'CDFGH'}],   // M77  → R16 slot 0
-  [{t:'P',pos:2,g:'A'}, {t:'P',pos:2,g:'B'}],    // M73  → R16 slot 1
-  [{t:'P',pos:1,g:'F'}, {t:'P',pos:2,g:'C'}],    // M75  → R16 slot 1
-  [{t:'P',pos:2,g:'K'}, {t:'P',pos:2,g:'L'}],    // M83  → R16 slot 2
-  [{t:'P',pos:1,g:'H'}, {t:'P',pos:2,g:'J'}],    // M84  → R16 slot 2
-  [{t:'P',pos:1,g:'D'}, {t:'3',pool:'BEFIJ'}],   // M81  → R16 slot 3
-  [{t:'P',pos:1,g:'G'}, {t:'3',pool:'AEHIJ'}],   // M82  → R16 slot 3
-  [{t:'P',pos:1,g:'C'}, {t:'P',pos:2,g:'F'}],    // M76  → R16 slot 4
-  [{t:'P',pos:2,g:'E'}, {t:'P',pos:2,g:'I'}],    // M78  → R16 slot 4
-  [{t:'P',pos:1,g:'A'}, {t:'3',pool:'CEFHI'}],   // M79  → R16 slot 5
-  [{t:'P',pos:1,g:'L'}, {t:'3',pool:'EHIJK'}],   // M80  → R16 slot 5
-  [{t:'P',pos:1,g:'J'}, {t:'P',pos:2,g:'H'}],    // M86  → R16 slot 6
-  [{t:'P',pos:2,g:'D'}, {t:'P',pos:2,g:'G'}],    // M88  → R16 slot 6
-  [{t:'P',pos:1,g:'B'}, {t:'3',pool:'EFGIJ'}],   // M85  → R16 slot 7
-  [{t:'P',pos:1,g:'K'}, {t:'3',pool:'DEIJL'}],   // M87  → R16 slot 7
+// Official 2026 R32 actual matchups and confirmed results.
+// Index order matches MATCH_NUMS.r32 positions — pairs feed the same R16 slot.
+// w: null = match not yet played or result unknown; w: team name = confirmed winner.
+const ACTUAL_R32 = [
+  {t1:'Germany',     f1:'🇩🇪', t2:'Paraguay',      f2:'🇵🇾', w:'Paraguay'},    // M74 — Paraguay 4-3 pens
+  {t1:'France',      f1:'🇫🇷', t2:'Sweden',        f2:'🇸🇪', w:'France'},       // M77 — France 3-0
+  {t1:'South Africa',f1:'🇿🇦', t2:'Canada',        f2:'🇨🇦', w:'Canada'},       // M73 — Canada 1-0
+  {t1:'Netherlands', f1:'🇳🇱', t2:'Morocco',       f2:'🇲🇦', w:'Morocco'},      // M75 — Morocco 3-2 pens
+  {t1:'Portugal',    f1:'🇵🇹', t2:'Croatia',       f2:'🇭🇷', w:'Portugal'},    // M83 — Portugal 2-1
+  {t1:'Spain',       f1:'🇪🇸', t2:'Austria',       f2:'🇦🇹', w:'Spain'},        // M84 — Spain 3-0
+  {t1:'USA',         f1:'🇺🇸', t2:'Bosnia & Herz.',f2:'🇧🇦', w:'USA'},          // M81 — USA 2-0
+  {t1:'Belgium',     f1:'🇧🇪', t2:'Senegal',       f2:'🇸🇳', w:'Belgium'},      // M82 — Belgium 3-2 AET
+  {t1:'Brazil',      f1:'🇧🇷', t2:'Japan',         f2:'🇯🇵', w:'Brazil'},       // M76 — Brazil 2-1
+  {t1:'Ivory Coast', f1:'🇨🇮', t2:'Norway',        f2:'🇳🇴', w:'Norway'},       // M78 — Norway 2-1
+  {t1:'Mexico',      f1:'🇲🇽', t2:'Ecuador',       f2:'🇪🇨', w:'Mexico'},       // M79 — Mexico 2-0
+  {t1:'England',     f1:'🏴󠁧󠁢󠁥󠁮󠁧󠁿', t2:'DR Congo',    f2:'🇨🇩', w:'England'},      // M80 — England 2-1
+  {t1:'Argentina',   f1:'🇦🇷', t2:'Cape Verde',    f2:'🇨🇻', w:'Argentina'},    // M86 — Argentina 3-2
+  {t1:'Australia',   f1:'🇦🇺', t2:'Egypt',         f2:'🇪🇬', w:'Egypt'},        // M88 — Egypt 4-2 pens
+  {t1:'Switzerland', f1:'🇨🇭', t2:'Algeria',       f2:'🇩🇿', w:'Switzerland'}, // M85 — Switzerland 2-0
+  {t1:'Colombia',    f1:'🇨🇴', t2:'Ghana',         f2:'🇬🇭', w:'Colombia'},     // M87 — Colombia 1-0
+];
+
+// Confirmed R16 results (Jul 5–8, 2026).
+// Index order matches MATCH_NUMS.r16 positions — pairs feed the same QF slot.
+const ACTUAL_R16 = [
+  {t1:'Paraguay',    f1:'🇵🇾', t2:'France',       f2:'🇫🇷', w:'France'},        // M89 — France won
+  {t1:'Canada',      f1:'🇨🇦', t2:'Morocco',      f2:'🇲🇦', w:'Morocco'},       // M90 — Morocco 3-0
+  {t1:'Portugal',    f1:'🇵🇹', t2:'Spain',        f2:'🇪🇸', w:'Spain'},         // M93 — Spain 1-0
+  {t1:'USA',         f1:'🇺🇸', t2:'Belgium',      f2:'🇧🇪', w:'Belgium'},       // M94 — Belgium 4-1
+  {t1:'Brazil',      f1:'🇧🇷', t2:'Norway',       f2:'🇳🇴', w:'Norway'},        // M91 — Norway won
+  {t1:'Mexico',      f1:'🇲🇽', t2:'England',      f2:'🏴󠁧󠁢󠁥󠁮󠁧󠁿', w:'England'},      // M92 — England 3-2
+  {t1:'Argentina',   f1:'🇦🇷', t2:'Egypt',        f2:'🇪🇬', w:'Argentina'},     // M95 — Argentina 3-2
+  {t1:'Switzerland', f1:'🇨🇭', t2:'Colombia',     f2:'🇨🇴', w:'Switzerland'},   // M96 — Switzerland 4-3 pens
+];
+
+// Confirmed QF results (Jul 9–11, 2026).
+// Index order matches MATCH_NUMS.qf positions — pairs feed the same SF slot.
+const ACTUAL_QF = [
+  {t1:'France',      f1:'🇫🇷', t2:'Morocco',      f2:'🇲🇦', w:'France'},        // M97 — France 2-0
+  {t1:'Spain',       f1:'🇪🇸', t2:'Belgium',      f2:'🇧🇪', w:'Spain'},         // M98 — Spain 2-1
+  {t1:'Norway',      f1:'🇳🇴', t2:'England',      f2:'🏴󠁧󠁢󠁥󠁮󠁧󠁿', w:'England'},      // M99 — England 2-1 AET
+  {t1:'Argentina',   f1:'🇦🇷', t2:'Switzerland',  f2:'🇨🇭', w:'Argentina'},     // M100 — Argentina 3-1
 ];
 
 // FIFA official match numbers for each round slot, used for display only.
@@ -323,99 +341,11 @@ const ROUNDS       = ['r32', 'r16', 'qf', 'sf', 'fin'];
 const ROUND_LABELS = { r32:'Round of 32', r16:'Round of 16', qf:'Quarterfinals', sf:'Semifinals', fin:'Final' };
 const ROUND_SIZE   = { r32: 16, r16: 8, qf: 4, sf: 2, fin: 1 };
 
-// ── Seed standings: June 27 2026 (all groups final) ─────────────────────
-// All 12 groups have completed matchday 3 (P:3). Group stage is over.
-// GF/GA unavailable from source (null) → GD will display as —.
-const SEED_NAME_MAP = {
-  'Korea Republic':          'South Korea',
-  'Czechia':                 'Czech Republic',
-  'Bosnia and Herzegovina':  'Bosnia & Herz.',
-  'IR Iran':                 'Iran',
-  'Congo DR':                'DR Congo',
-};
-const SEED_STANDINGS = {
-  A:[
-    {team:'Mexico',           P:3,W:3,D:0,L:0,GF:null,GA:null,Pts:9},
-    {team:'South Africa',     P:3,W:1,D:1,L:1,GF:null,GA:null,Pts:4},
-    {team:'Korea Republic',   P:3,W:1,D:0,L:2,GF:null,GA:null,Pts:3},
-    {team:'Czechia',          P:3,W:0,D:1,L:2,GF:null,GA:null,Pts:1},
-  ],
-  B:[
-    {team:'Switzerland',                 P:3,W:2,D:1,L:0,GF:null,GA:null,Pts:7},
-    {team:'Canada',                      P:3,W:1,D:1,L:1,GF:null,GA:null,Pts:4},
-    {team:'Bosnia and Herzegovina',      P:3,W:1,D:1,L:1,GF:null,GA:null,Pts:4},
-    {team:'Qatar',                       P:3,W:0,D:1,L:2,GF:null,GA:null,Pts:1},
-  ],
-  C:[
-    {team:'Brazil',   P:3,W:2,D:1,L:0,GF:null,GA:null,Pts:7},
-    {team:'Morocco',  P:3,W:2,D:1,L:0,GF:null,GA:null,Pts:7},
-    {team:'Scotland', P:3,W:1,D:0,L:2,GF:null,GA:null,Pts:3},
-    {team:'Haiti',    P:3,W:0,D:0,L:3,GF:null,GA:null,Pts:0},
-  ],
-  D:[
-    {team:'USA',       P:3,W:2,D:1,L:0,GF:null,GA:null,Pts:7},
-    {team:'Australia', P:3,W:1,D:1,L:1,GF:null,GA:null,Pts:4},
-    {team:'Paraguay',  P:3,W:1,D:1,L:1,GF:null,GA:null,Pts:4},
-    {team:'Türkiye',   P:3,W:0,D:1,L:2,GF:null,GA:null,Pts:1},
-  ],
-  E:[
-    {team:'Germany',     P:3,W:2,D:0,L:1,GF:null,GA:null,Pts:6},
-    {team:'Ivory Coast', P:3,W:2,D:0,L:1,GF:null,GA:null,Pts:6},
-    {team:'Ecuador',     P:3,W:1,D:1,L:1,GF:null,GA:null,Pts:4},
-    {team:'Curaçao',     P:3,W:0,D:1,L:2,GF:null,GA:null,Pts:1},
-  ],
-  F:[
-    {team:'Netherlands', P:3,W:2,D:1,L:0,GF:null,GA:null,Pts:7},
-    {team:'Japan',       P:3,W:1,D:2,L:0,GF:null,GA:null,Pts:5},
-    {team:'Sweden',      P:3,W:1,D:1,L:1,GF:null,GA:null,Pts:4},
-    {team:'Tunisia',     P:3,W:0,D:0,L:3,GF:null,GA:null,Pts:0},
-  ],
-  G:[
-    {team:'Belgium',     P:3,W:1,D:2,L:0,GF:null,GA:null,Pts:5},
-    {team:'Egypt',       P:3,W:1,D:2,L:0,GF:null,GA:null,Pts:5},
-    {team:'IR Iran',     P:3,W:0,D:3,L:0,GF:null,GA:null,Pts:3},
-    {team:'New Zealand', P:3,W:0,D:1,L:2,GF:null,GA:null,Pts:1},
-  ],
-  H:[
-    {team:'Spain',        P:3,W:2,D:1,L:0,GF:null,GA:null,Pts:7},
-    {team:'Cape Verde',   P:3,W:0,D:3,L:0,GF:null,GA:null,Pts:3},
-    {team:'Uruguay',      P:3,W:0,D:2,L:1,GF:null,GA:null,Pts:2},
-    {team:'Saudi Arabia', P:3,W:0,D:2,L:1,GF:null,GA:null,Pts:2},
-  ],
-  I:[
-    {team:'France',  P:3,W:3,D:0,L:0,GF:null,GA:null,Pts:9},
-    {team:'Norway',  P:3,W:2,D:0,L:1,GF:null,GA:null,Pts:6},
-    {team:'Senegal', P:3,W:1,D:0,L:2,GF:null,GA:null,Pts:3},
-    {team:'Iraq',    P:3,W:0,D:0,L:3,GF:null,GA:null,Pts:0},
-  ],
-  J:[
-    {team:'Argentina', P:3,W:3,D:0,L:0,GF:null,GA:null,Pts:9},
-    {team:'Austria',   P:3,W:1,D:1,L:1,GF:null,GA:null,Pts:4},
-    {team:'Algeria',   P:3,W:0,D:2,L:1,GF:null,GA:null,Pts:2},
-    {team:'Jordan',    P:3,W:0,D:1,L:2,GF:null,GA:null,Pts:1},
-  ],
-  K:[
-    {team:'Colombia',    P:3,W:2,D:1,L:0,GF:null,GA:null,Pts:7},
-    {team:'Portugal',    P:3,W:1,D:2,L:0,GF:null,GA:null,Pts:5},
-    {team:'Congo DR',    P:3,W:1,D:1,L:1,GF:null,GA:null,Pts:4},
-    {team:'Uzbekistan',  P:3,W:0,D:0,L:3,GF:null,GA:null,Pts:0},
-  ],
-  L:[
-    {team:'England',  P:3,W:2,D:1,L:0,GF:null,GA:null,Pts:7},
-    {team:'Croatia',  P:3,W:2,D:0,L:1,GF:null,GA:null,Pts:6},
-    {team:'Ghana',    P:3,W:1,D:1,L:1,GF:null,GA:null,Pts:4},
-    {team:'Panama',   P:3,W:0,D:0,L:3,GF:null,GA:null,Pts:0},
-  ],
-};
-
 // ── State ────────────────────────────────────────────────────────────────
 function defaultState() {
   return {
-    rankings: Object.fromEntries(GROUPS.map(g => [g, TEAM_DATA[g].map(t => t.n)])),
-    picks:    [],        // the 8 group letters whose 3rd-place team got the wildcard, auto-computed
-    bracket:  newBracket(),
-    ready:    false,     // true after the bracket has been generated once
-    stats:    null,      // { [groupLetter]: [{name,pld,w,d,l,gf,ga,gd,pts}, ...] }
+    bracket: newBracket(),
+    ready:   false,
   };
 }
 function newBracket() {
@@ -427,81 +357,18 @@ function newBracket() {
 let S = defaultState();
 
 // ── Persistence ──────────────────────────────────────────────────────────
-function save() { try { localStorage.setItem('wc26_v4', JSON.stringify(S)); } catch(_) {} }
+function save() { try { localStorage.setItem('wc26_v7', JSON.stringify(S)); } catch(_) {} }
 function load() {
   try {
-    const raw = localStorage.getItem('wc26_v4');
+    const raw = localStorage.getItem('wc26_v7');
     if (raw) S = JSON.parse(raw);
   } catch(_) {}
-}
-
-// Populates S.stats and S.rankings from SEED_STANDINGS.
-// Auto-called at boot when no live data has been saved yet (S.stats === null).
-function applySeedStandings() {
-  S.stats = {};
-  for (const [g, rows] of Object.entries(SEED_STANDINGS)) {
-    const parsed = rows.map(r => {
-      const name = SEED_NAME_MAP[r.team] || r.team;
-      const gd   = r.GF != null && r.GA != null ? r.GF - r.GA : null;
-      return { name, pld: r.P, w: r.W, d: r.D, l: r.L,
-               gf: r.GF, ga: r.GA, gd, pts: r.Pts };
-    });
-    S.rankings[g] = parsed.map(p => p.name);
-    S.stats[g]    = parsed;
-  }
-  save();
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────
 function teamByName(n) {
   for (const g of GROUPS) { const t = TEAM_DATA[g].find(t => t.n === n); if (t) return t; }
   return { n: n || '?', f: '❓' };
-}
-function ranked(g) { return S.rankings[g] || TEAM_DATA[g].map(t => t.n); }
-
-// Picks the 8 best 3rd-place finishers across all 12 groups, FIFA-style:
-// ranked by points, then goal difference, then goals scored, then wins.
-function autoPickThirds() {
-  return GROUPS.map(g => {
-    const name = ranked(g)[2];
-    const ts   = S.stats?.[g]?.find(s => s.name === name);
-    return { g, pts: ts?.pts ?? 0, gd: ts?.gd ?? 0, gf: ts?.gf ?? 0, w: ts?.w ?? 0 };
-  })
-  .sort((a, b) => b.pts - a.pts || b.gd - a.gd || b.gf - a.gf || b.w - a.w || a.g.localeCompare(b.g))
-  .slice(0, 8)
-  .map(x => x.g);
-}
-
-// Assign the 8 wildcard groups (S.picks) to the 8 wildcard slots in R32_DEFS.
-// Each slot has a pool constraint (a string of allowed group letters).
-// We use backtracking DFS so we never get stuck in a greedy dead-end.
-// Slots are attempted in ascending match-number order to match the official draw.
-function assign3rdPlaceTeams() {
-  // Indices into R32_DEFS that are wildcard slots, ordered by match number
-  const wcSlots = R32_DEFS
-    .map((def, i) => ({ i, def: def[1], mnum: MATCH_NUMS.r32[i] }))
-    .filter(x => x.def.t === '3')
-    .sort((a, b) => a.mnum - b.mnum);  // M74, M77, M79, M80, M81, M82, M85, M87
-
-  const picks = [...S.picks];           // the 8 chosen group letters
-  const assignment = {};                // slot index → group letter
-
-  function dfs(si) {
-    if (si === wcSlots.length) return true;
-    const { i, def } = wcSlots[si];
-    const used = new Set(Object.values(assignment));
-    for (const g of picks) {
-      if (used.has(g)) continue;
-      if (!def.pool.includes(g)) continue;
-      assignment[i] = g;
-      if (dfs(si + 1)) return true;
-      delete assignment[i];
-    }
-    return false;
-  }
-
-  dfs(0);
-  return assignment;  // { r32DefIndex: groupLetter }
 }
 
 function nextSlot(round, mi) {
@@ -514,27 +381,59 @@ function nextSlot(round, mi) {
 // BRACKET GENERATION
 // ════════════════════════════════════════════════════════════════════════
 function genBracket() {
-  S.picks   = autoPickThirds();
   S.bracket = newBracket();
 
-  const wcAssign = assign3rdPlaceTeams();  // { defIndex: groupLetter }
-
-  R32_DEFS.forEach((def, i) => {
+  // Load all 16 R32 teams from the hardcoded official matchups
+  ACTUAL_R32.forEach((match, i) => {
     const m = S.bracket.r32[i];
-    [def[0], def[1]].forEach((slot, si) => {
-      let name;
-      if (slot.t === 'P') {
-        name = ranked(slot.g)[slot.pos - 1] ?? null;
-      } else {
-        const g = wcAssign[i];
-        name = g ? ranked(g)[2] : null;
-      }
-      if (name) {
-        const td = teamByName(name);
-        if (si === 0) { m.t1 = name; m.f1 = td.f; }
-        else          { m.t2 = name; m.f2 = td.f; }
-      }
-    });
+    m.t1 = match.t1; m.f1 = match.f1;
+    m.t2 = match.t2; m.f2 = match.f2;
+  });
+
+  // Pre-fill confirmed R32 winners and cascade them into R16 slots
+  ACTUAL_R32.forEach((match, i) => {
+    if (!match.w) return;
+    const m    = S.bracket.r32[i];
+    const flag = match.w === match.t1 ? match.f1 : match.f2;
+    m.w = match.w;
+    const ns = nextSlot('r32', i);
+    if (ns) {
+      const nm = S.bracket[ns.round][ns.idx];
+      if (ns.slot === 0) { nm.t1 = match.w; nm.f1 = flag; }
+      else               { nm.t2 = match.w; nm.f2 = flag; }
+    }
+  });
+
+  // Load confirmed R16 teams (overrides cascaded values with actuals) and cascade winners into QF slots
+  ACTUAL_R16.forEach((match, i) => {
+    const m = S.bracket.r16[i];
+    m.t1 = match.t1; m.f1 = match.f1;
+    m.t2 = match.t2; m.f2 = match.f2;
+    if (!match.w) return;
+    const flag = match.w === match.t1 ? match.f1 : match.f2;
+    m.w = match.w;
+    const ns = nextSlot('r16', i);
+    if (ns) {
+      const nm = S.bracket[ns.round][ns.idx];
+      if (ns.slot === 0) { nm.t1 = match.w; nm.f1 = flag; }
+      else               { nm.t2 = match.w; nm.f2 = flag; }
+    }
+  });
+
+  // Load confirmed QF teams (overrides cascaded values with actuals) and cascade winners into SF slots
+  ACTUAL_QF.forEach((match, i) => {
+    const m = S.bracket.qf[i];
+    m.t1 = match.t1; m.f1 = match.f1;
+    m.t2 = match.t2; m.f2 = match.f2;
+    if (!match.w) return;
+    const flag = match.w === match.t1 ? match.f1 : match.f2;
+    m.w = match.w;
+    const ns = nextSlot('qf', i);
+    if (ns) {
+      const nm = S.bracket[ns.round][ns.idx];
+      if (ns.slot === 0) { nm.t1 = match.w; nm.f1 = flag; }
+      else               { nm.t2 = match.w; nm.f2 = flag; }
+    }
   });
 
   S.ready = true;
@@ -542,7 +441,7 @@ function genBracket() {
 }
 
 function regenBracket() {
-  if (!confirm('Regenerate the bracket from the latest standings?\nAll knockout picks will be cleared.')) return;
+  if (!confirm('Reset all picks? Confirmed results will stay, your predictions will be cleared.')) return;
   genBracket();
   renderBracket();
 }
@@ -572,6 +471,91 @@ function renderBracket() {
   });
 
   updateChampionBanner();
+  requestAnimationFrame(layoutBracket);
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// BRACKET LAYOUT  (absolute positioning + SVG connector lines)
+// ════════════════════════════════════════════════════════════════════════
+function layoutBracket() {
+  const el = document.getElementById('bracketEl');
+  const cols = Array.from(el.querySelectorAll('.round-col'));
+  const rounds = cols.map(col => ({
+    wrap:  col.querySelector('.matches-wrap'),
+    boxes: Array.from(col.querySelectorAll('.match-box')),
+  }));
+  if (!rounds[0] || !rounds[0].boxes[0]) return;
+
+  const cardH  = rounds[0].boxes[0].offsetHeight;
+  const GAP    = 10;
+  const slotH  = cardH + GAP;
+  const n0     = rounds[0].boxes.length;           // 16 (R32)
+  const totalH = n0 * slotH;
+  const labelH = cols[0].querySelector('.round-label').offsetHeight;
+
+  // Expand bracket height so all R32 cards fit without overlap
+  el.style.height = (totalH + labelH) + 'px';
+
+  // Compute Y-centers for every round, relative to each column's wrap top.
+  // R32: evenly spaced slots. Each later round: midpoint of the pair that feeds it.
+  let prev = Array.from({length: n0}, (_, i) => (i + 0.5) * slotH);
+  const allCenters = [prev];
+  for (let r = 1; r < rounds.length; r++) {
+    prev = rounds[r].boxes.map((_, j) => (prev[2 * j] + prev[2 * j + 1]) / 2);
+    allCenters.push(prev);
+  }
+
+  // Absolutely position each card at its computed center
+  rounds.forEach(({ boxes }, r) => {
+    boxes.forEach((box, i) => {
+      box.style.position = 'absolute';
+      box.style.left   = '6px';
+      box.style.right  = '6px';
+      box.style.margin = '0';
+      box.style.top    = (allCenters[r][i] - cardH / 2) + 'px';
+    });
+  });
+
+  // Raise wraps above the connector SVG so cards render on top of lines
+  rounds.forEach(({ wrap }) => { wrap.style.zIndex = '1'; });
+
+  // Build connector SVG and insert before columns so it paints behind cards
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.className = 'conn-svg';
+  svg.setAttribute('aria-hidden', 'true');
+  svg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible';
+  el.insertBefore(svg, el.firstChild);
+
+  // getBoundingClientRect forces reflow so measurements reflect new height
+  const er = el.getBoundingClientRect();
+
+  for (let r = 1; r < rounds.length; r++) {
+    const pwr = rounds[r - 1].wrap.getBoundingClientRect();
+    const cwr = rounds[r].wrap.getBoundingClientRect();
+    // x1 = right edge of prev-column cards; x2 = left edge of cur-column cards
+    const x1  = pwr.right - er.left - 6;
+    const x2  = cwr.left  - er.left + 6;
+    const mx  = (x1 + x2) / 2;
+    const pyT = pwr.top - er.top;
+    const cyT = cwr.top - er.top;
+
+    rounds[r].boxes.forEach((_, j) => {
+      const ya = pyT + allCenters[r - 1][2 * j];      // top feeder center
+      const yb = pyT + allCenters[r - 1][2 * j + 1];  // bottom feeder center
+      const yc = cyT + allCenters[r][j];               // this match center
+      const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      // Top stub → spine down → bottom stub → midpoint out to next card
+      p.setAttribute('d',
+        `M${x1},${ya}H${mx}V${yb}` +
+        `M${x1},${yb}H${mx}` +
+        `M${mx},${yc}H${x2}`
+      );
+      p.setAttribute('stroke', '#3d4f70');
+      p.setAttribute('stroke-width', '1.5');
+      p.setAttribute('fill', 'none');
+      svg.appendChild(p);
+    });
+  }
 }
 
 function buildMatch(r, i, m) {
@@ -682,9 +666,8 @@ function undoChampion() {
 // RESET
 // ════════════════════════════════════════════════════════════════════════
 function resetAll() {
-  if (!confirm('Reset everything? The bracket will be rebuilt from the latest seed standings and all knockout picks will be cleared.')) return;
+  if (!confirm('Reset everything? All your picks will be cleared and the official bracket restored.')) return;
   S = defaultState();
-  applySeedStandings();
   genBracket();
   document.getElementById('champBanner').classList.remove('show');
   renderBracket();
@@ -729,9 +712,9 @@ function randomizeBracket() {
 
 // ── Boot ─────────────────────────────────────────────────────────────────
 load();
-if (!S.stats) applySeedStandings();
 if (!S.ready) genBracket();
 renderBracket();
+window.addEventListener('resize', () => requestAnimationFrame(layoutBracket));
 </script>
 </body>
 </html>
