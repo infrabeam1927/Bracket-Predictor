@@ -328,6 +328,13 @@ const ACTUAL_QF = [
   {t1:'Argentina',   f1:'🇦🇷', t2:'Switzerland',  f2:'🇨🇭', w:'Argentina'},     // M100 — Argentina 3-1
 ];
 
+// Confirmed SF results (Jul 14–15, 2026).
+// Index order matches MATCH_NUMS.sf positions — each winner feeds the Final slot.
+const ACTUAL_SF = [
+  {t1:'France',      f1:'🇫🇷', t2:'Spain',        f2:'🇪🇸', w:'Spain'},         // M101 — Spain 2-0
+  {t1:'Argentina',   f1:'🇦🇷', t2:'England',      f2:'🏴󠁧󠁢󠁥󠁮󠁧󠁿', w:'Argentina'},     // M102 — Argentina 2-1
+];
+
 // FIFA official match numbers for each round slot, used for display only.
 const MATCH_NUMS = {
   r32: [74, 77, 73, 75, 83, 84, 81, 82, 76, 78, 79, 80, 86, 88, 85, 87],
@@ -357,10 +364,10 @@ function newBracket() {
 let S = defaultState();
 
 // ── Persistence ──────────────────────────────────────────────────────────
-function save() { try { localStorage.setItem('wc26_v7', JSON.stringify(S)); } catch(_) {} }
+function save() { try { localStorage.setItem('wc26_v8', JSON.stringify(S)); } catch(_) {} }
 function load() {
   try {
-    const raw = localStorage.getItem('wc26_v7');
+    const raw = localStorage.getItem('wc26_v8');
     if (raw) S = JSON.parse(raw);
   } catch(_) {}
 }
@@ -429,6 +436,22 @@ function genBracket() {
     const flag = match.w === match.t1 ? match.f1 : match.f2;
     m.w = match.w;
     const ns = nextSlot('qf', i);
+    if (ns) {
+      const nm = S.bracket[ns.round][ns.idx];
+      if (ns.slot === 0) { nm.t1 = match.w; nm.f1 = flag; }
+      else               { nm.t2 = match.w; nm.f2 = flag; }
+    }
+  });
+
+  // Load confirmed SF teams (overrides cascaded values with actuals) and cascade winners into Final slot
+  ACTUAL_SF.forEach((match, i) => {
+    const m = S.bracket.sf[i];
+    m.t1 = match.t1; m.f1 = match.f1;
+    m.t2 = match.t2; m.f2 = match.f2;
+    if (!match.w) return;
+    const flag = match.w === match.t1 ? match.f1 : match.f2;
+    m.w = match.w;
+    const ns = nextSlot('sf', i);
     if (ns) {
       const nm = S.bracket[ns.round][ns.idx];
       if (ns.slot === 0) { nm.t1 = match.w; nm.f1 = flag; }
