@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>2026 FIFA World Cup Bracket Predictor</title>
+<title>Premier League & EFL Champions Cup Bracket Predictor</title>
 <style>
 /* ── Design tokens ──────────────────────────────────────────────────── */
 :root {
@@ -220,8 +220,8 @@ header p    { font-size: .8rem; color: var(--muted); margin-top: .15rem; }
 <header>
   <span class="hdr-trophy">🏆</span>
   <div>
-    <h1>2026 World Cup Bracket Predictor</h1>
-    <p>48 teams &middot; Official 2026 FIFA World Cup knockout bracket — live results</p>
+    <h1>Premier League &amp; EFL Champions Cup</h1>
+    <p>32 clubs &middot; English football's ultimate knockout bracket — pick your winners</p>
   </div>
 </header>
 
@@ -232,14 +232,14 @@ header p    { font-size: .8rem; color: var(--muted); margin-top: .15rem; }
 
   <div class="section-title">Round of 32 Bracket</div>
   <div class="section-sub">
-    Official 2026 FIFA World Cup bracket. Confirmed match results are pre-filled automatically.
-    Click any TBD match to predict a winner and watch them advance through the bracket.
+    32 Premier League &amp; EFL Championship clubs compete for the ultimate English football prize.
+    Click any team to pick them as winner and watch them advance through the bracket.
   </div>
 
   <!-- Champion reveal (hidden until Final is complete) -->
   <div id="champBanner" onclick="undoChampion()">
     <span class="ban-trophy">🏆</span>
-    <h2>2026 World Cup Champion</h2>
+    <h2>Champions Cup Winner</h2>
     <div class="ban-flag" id="champFlag"></div>
     <div class="ban-name" id="champName"></div>
     <div class="ban-sub">Click to undo pick</div>
@@ -262,87 +262,64 @@ header p    { font-size: .8rem; color: var(--muted); margin-top: .15rem; }
 
 <script>
 // ═══════════════════════════════════════════════════════════════════════
-// Round of 32 onward. Group standings feed the bracket directly — there
-// is no interactive group-stage or third-place picker UI.
+// Premier League & EFL Champions Cup — 32-club knockout bracket.
+// All results start as TBD so the user predicts every outcome.
 // ═══════════════════════════════════════════════════════════════════════
 
 // ── Team data ───────────────────────────────────────────────────────────
-// Official 2026 FIFA World Cup groups (draw: 5 Dec 2024, Kennedy Center, Washington D.C.)
+// 48 clubs (20 PL + 28 EFL Championship) seeded into 12 groups of 4.
+// Emoji represents each club's primary kit colour.
 const TEAM_DATA = {
-  A:[{n:'Mexico',f:'🇲🇽'},{n:'South Korea',f:'🇰🇷'},{n:'South Africa',f:'🇿🇦'},{n:'Czech Republic',f:'🇨🇿'}],
-  B:[{n:'Canada',f:'🇨🇦'},{n:'Switzerland',f:'🇨🇭'},{n:'Qatar',f:'🇶🇦'},{n:'Bosnia & Herz.',f:'🇧🇦'}],
-  C:[{n:'Brazil',f:'🇧🇷'},{n:'Morocco',f:'🇲🇦'},{n:'Scotland',f:'🏴󠁧󠁢󠁳󠁣󠁴󠁿'},{n:'Haiti',f:'🇭🇹'}],
-  D:[{n:'USA',f:'🇺🇸'},{n:'Australia',f:'🇦🇺'},{n:'Paraguay',f:'🇵🇾'},{n:'Türkiye',f:'🇹🇷'}],
-  E:[{n:'Germany',f:'🇩🇪'},{n:'Ecuador',f:'🇪🇨'},{n:'Ivory Coast',f:'🇨🇮'},{n:'Curaçao',f:'🇨🇼'}],
-  F:[{n:'Netherlands',f:'🇳🇱'},{n:'Japan',f:'🇯🇵'},{n:'Sweden',f:'🇸🇪'},{n:'Tunisia',f:'🇹🇳'}],
-  G:[{n:'Belgium',f:'🇧🇪'},{n:'Iran',f:'🇮🇷'},{n:'Egypt',f:'🇪🇬'},{n:'New Zealand',f:'🇳🇿'}],
-  H:[{n:'Spain',f:'🇪🇸'},{n:'Uruguay',f:'🇺🇾'},{n:'Saudi Arabia',f:'🇸🇦'},{n:'Cape Verde',f:'🇨🇻'}],
-  I:[{n:'France',f:'🇫🇷'},{n:'Senegal',f:'🇸🇳'},{n:'Norway',f:'🇳🇴'},{n:'Iraq',f:'🇮🇶'}],
-  J:[{n:'Argentina',f:'🇦🇷'},{n:'Austria',f:'🇦🇹'},{n:'Algeria',f:'🇩🇿'},{n:'Jordan',f:'🇯🇴'}],
-  K:[{n:'Portugal',f:'🇵🇹'},{n:'Colombia',f:'🇨🇴'},{n:'Uzbekistan',f:'🇺🇿'},{n:'DR Congo',f:'🇨🇩'}],
-  L:[{n:'England',f:'🏴󠁧󠁢󠁥󠁮󠁧󠁿'},{n:'Croatia',f:'🇭🇷'},{n:'Ghana',f:'🇬🇭'},{n:'Panama',f:'🇵🇦'}],
+  A:[{n:'Arsenal',f:'🔴'},{n:'Leeds United',f:'🟡'},{n:'Sunderland',f:'🔴'},{n:'Sheffield Wed',f:'🔵'}],
+  B:[{n:'Chelsea',f:'🔵'},{n:'West Brom',f:'🔵'},{n:'Hull City',f:'🟠'},{n:'Norwich City',f:'🟡'}],
+  C:[{n:'Liverpool',f:'🔴'},{n:'Middlesbrough',f:'🔴'},{n:'Coventry City',f:'🩵'},{n:'Plymouth Argyle',f:'🟢'}],
+  D:[{n:'Man City',f:'🩵'},{n:'Sheffield Utd',f:'🔴'},{n:'Preston NE',f:'⚪'},{n:'Stoke City',f:'🔴'}],
+  E:[{n:'Man United',f:'🔴'},{n:'Burnley',f:'🟤'},{n:'Watford',f:'🟡'},{n:'Oxford Utd',f:'🟡'}],
+  F:[{n:'Tottenham',f:'⚪'},{n:'Blackburn',f:'🔵'},{n:'Derby County',f:'⚪'},{n:'Cardiff City',f:'🔵'}],
+  G:[{n:'Aston Villa',f:'🟣'},{n:'Millwall',f:'🔵'},{n:'Bristol City',f:'🔴'},{n:'Swansea City',f:'⚪'}],
+  H:[{n:'Newcastle',f:'⚫'},{n:'QPR',f:'🔵'},{n:'Charlton Ath',f:'🔴'},{n:'Portsmouth',f:'🔵'}],
+  I:[{n:'Brighton',f:'🔵'},{n:'Ipswich Town',f:'🔵'},{n:'Luton Town',f:'🟠'},{n:'Wigan Athletic',f:'🔵'}],
+  J:[{n:'West Ham',f:'🟤'},{n:'Nottm Forest',f:'🔴'},{n:'Birmingham',f:'🔵'},{n:'Reading',f:'🔵'}],
+  K:[{n:'Fulham',f:'⚪'},{n:'Leicester',f:'🔵'},{n:'Rotherham',f:'🔴'},{n:'Barnsley',f:'🔴'}],
+  L:[{n:'Wolves',f:'🟡'},{n:'Everton',f:'🔵'},{n:'Bournemouth',f:'🔴'},{n:'Crystal Palace',f:'🔴'}],
 };
 const GROUPS = Object.keys(TEAM_DATA); // ['A'..'L']
 
-// Official 2026 R32 actual matchups and confirmed results.
-// Index order matches MATCH_NUMS.r32 positions — pairs feed the same R16 slot.
-// w: null = match not yet played or result unknown; w: team name = confirmed winner.
+// ── Round of 32 draw ─────────────────────────────────────────────────────
+// 32 clubs seeded across 16 matches. All results are TBD — predict away!
 const ACTUAL_R32 = [
-  {t1:'Germany',     f1:'🇩🇪', t2:'Paraguay',      f2:'🇵🇾', w:'Paraguay'},    // M74 — Paraguay 4-3 pens
-  {t1:'France',      f1:'🇫🇷', t2:'Sweden',        f2:'🇸🇪', w:'France'},       // M77 — France 3-0
-  {t1:'South Africa',f1:'🇿🇦', t2:'Canada',        f2:'🇨🇦', w:'Canada'},       // M73 — Canada 1-0
-  {t1:'Netherlands', f1:'🇳🇱', t2:'Morocco',       f2:'🇲🇦', w:'Morocco'},      // M75 — Morocco 3-2 pens
-  {t1:'Portugal',    f1:'🇵🇹', t2:'Croatia',       f2:'🇭🇷', w:'Portugal'},    // M83 — Portugal 2-1
-  {t1:'Spain',       f1:'🇪🇸', t2:'Austria',       f2:'🇦🇹', w:'Spain'},        // M84 — Spain 3-0
-  {t1:'USA',         f1:'🇺🇸', t2:'Bosnia & Herz.',f2:'🇧🇦', w:'USA'},          // M81 — USA 2-0
-  {t1:'Belgium',     f1:'🇧🇪', t2:'Senegal',       f2:'🇸🇳', w:'Belgium'},      // M82 — Belgium 3-2 AET
-  {t1:'Brazil',      f1:'🇧🇷', t2:'Japan',         f2:'🇯🇵', w:'Brazil'},       // M76 — Brazil 2-1
-  {t1:'Ivory Coast', f1:'🇨🇮', t2:'Norway',        f2:'🇳🇴', w:'Norway'},       // M78 — Norway 2-1
-  {t1:'Mexico',      f1:'🇲🇽', t2:'Ecuador',       f2:'🇪🇨', w:'Mexico'},       // M79 — Mexico 2-0
-  {t1:'England',     f1:'🏴󠁧󠁢󠁥󠁮󠁧󠁿', t2:'DR Congo',    f2:'🇨🇩', w:'England'},      // M80 — England 2-1
-  {t1:'Argentina',   f1:'🇦🇷', t2:'Cape Verde',    f2:'🇨🇻', w:'Argentina'},    // M86 — Argentina 3-2
-  {t1:'Australia',   f1:'🇦🇺', t2:'Egypt',         f2:'🇪🇬', w:'Egypt'},        // M88 — Egypt 4-2 pens
-  {t1:'Switzerland', f1:'🇨🇭', t2:'Algeria',       f2:'🇩🇿', w:'Switzerland'}, // M85 — Switzerland 2-0
-  {t1:'Colombia',    f1:'🇨🇴', t2:'Ghana',         f2:'🇬🇭', w:'Colombia'},     // M87 — Colombia 1-0
+  {t1:'Arsenal',       f1:'🔴', t2:'Derby County',   f2:'⚪', w:null},   // M1
+  {t1:'Chelsea',       f1:'🔵', t2:'Sunderland',     f2:'🔴', w:null},   // M2
+  {t1:'Liverpool',     f1:'🔴', t2:'West Brom',      f2:'🔵', w:null},   // M3
+  {t1:'Man City',      f1:'🩵', t2:'Coventry City',  f2:'🩵', w:null},   // M4
+  {t1:'Man United',    f1:'🔴', t2:'Millwall',       f2:'🔵', w:null},   // M5
+  {t1:'Tottenham',     f1:'⚪', t2:'Sheffield Utd',  f2:'🔴', w:null},   // M6
+  {t1:'Aston Villa',   f1:'🟣', t2:'Middlesbrough',  f2:'🔴', w:null},   // M7
+  {t1:'Newcastle',     f1:'⚫', t2:'Blackburn',      f2:'🔵', w:null},   // M8
+  {t1:'Brighton',      f1:'🔵', t2:'Leeds United',   f2:'🟡', w:null},   // M9
+  {t1:'West Ham',      f1:'🟤', t2:'Burnley',        f2:'🟤', w:null},   // M10
+  {t1:'Fulham',        f1:'⚪', t2:'Hull City',      f2:'🟠', w:null},   // M11
+  {t1:'Wolves',        f1:'🟡', t2:'Preston NE',     f2:'⚪', w:null},   // M12
+  {t1:'Nottm Forest',  f1:'🔴', t2:'Bristol City',   f2:'🔴', w:null},   // M13
+  {t1:'Leicester',     f1:'🔵', t2:'Norwich City',   f2:'🟡', w:null},   // M14
+  {t1:'Everton',       f1:'🔵', t2:'Watford',        f2:'🟡', w:null},   // M15
+  {t1:'Crystal Palace',f1:'🔴', t2:'Sheffield Wed',  f2:'🔵', w:null},   // M16
 ];
 
-// Confirmed R16 results (Jul 5–8, 2026).
-// Index order matches MATCH_NUMS.r16 positions — pairs feed the same QF slot.
-const ACTUAL_R16 = [
-  {t1:'Paraguay',    f1:'🇵🇾', t2:'France',       f2:'🇫🇷', w:'France'},        // M89 — France won
-  {t1:'Canada',      f1:'🇨🇦', t2:'Morocco',      f2:'🇲🇦', w:'Morocco'},       // M90 — Morocco 3-0
-  {t1:'Portugal',    f1:'🇵🇹', t2:'Spain',        f2:'🇪🇸', w:'Spain'},         // M93 — Spain 1-0
-  {t1:'USA',         f1:'🇺🇸', t2:'Belgium',      f2:'🇧🇪', w:'Belgium'},       // M94 — Belgium 4-1
-  {t1:'Brazil',      f1:'🇧🇷', t2:'Norway',       f2:'🇳🇴', w:'Norway'},        // M91 — Norway won
-  {t1:'Mexico',      f1:'🇲🇽', t2:'England',      f2:'🏴󠁧󠁢󠁥󠁮󠁧󠁿', w:'England'},      // M92 — England 3-2
-  {t1:'Argentina',   f1:'🇦🇷', t2:'Egypt',        f2:'🇪🇬', w:'Argentina'},     // M95 — Argentina 3-2
-  {t1:'Switzerland', f1:'🇨🇭', t2:'Colombia',     f2:'🇨🇴', w:'Switzerland'},   // M96 — Switzerland 4-3 pens
-];
+// R16, QF, SF start empty — they fill as the user picks winners.
+const ACTUAL_R16 = Array.from({length: 8}, () => ({t1:null,f1:null,t2:null,f2:null,w:null}));
+const ACTUAL_QF  = Array.from({length: 4}, () => ({t1:null,f1:null,t2:null,f2:null,w:null}));
+const ACTUAL_SF  = Array.from({length: 2}, () => ({t1:null,f1:null,t2:null,f2:null,w:null}));
 
-// Confirmed QF results (Jul 9–11, 2026).
-// Index order matches MATCH_NUMS.qf positions — pairs feed the same SF slot.
-const ACTUAL_QF = [
-  {t1:'France',      f1:'🇫🇷', t2:'Morocco',      f2:'🇲🇦', w:'France'},        // M97 — France 2-0
-  {t1:'Spain',       f1:'🇪🇸', t2:'Belgium',      f2:'🇧🇪', w:'Spain'},         // M98 — Spain 2-1
-  {t1:'Norway',      f1:'🇳🇴', t2:'England',      f2:'🏴󠁧󠁢󠁥󠁮󠁧󠁿', w:'England'},      // M99 — England 2-1 AET
-  {t1:'Argentina',   f1:'🇦🇷', t2:'Switzerland',  f2:'🇨🇭', w:'Argentina'},     // M100 — Argentina 3-1
-];
-
-// Confirmed SF results (Jul 14–15, 2026).
-// Index order matches MATCH_NUMS.sf positions — each winner feeds the Final slot.
-const ACTUAL_SF = [
-  {t1:'France',      f1:'🇫🇷', t2:'Spain',        f2:'🇪🇸', w:'Spain'},         // M101 — Spain 2-0
-  {t1:'Argentina',   f1:'🇦🇷', t2:'England',      f2:'🏴󠁧󠁢󠁥󠁮󠁧󠁿', w:'Argentina'},     // M102 — Argentina 2-1
-];
-
-// FIFA official match numbers for each round slot, used for display only.
+// Match numbers for display chips (M1–M31).
 const MATCH_NUMS = {
-  r32: [74, 77, 73, 75, 83, 84, 81, 82, 76, 78, 79, 80, 86, 88, 85, 87],
-  r16: [89, 90, 93, 94, 91, 92, 95, 96],
-  qf:  [97, 98, 99, 100],
-  sf:  [101, 102],
-  fin: [104],
+  r32: [1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16],
+  r16: [17, 18, 19, 20, 21, 22, 23, 24],
+  qf:  [25, 26, 27, 28],
+  sf:  [29, 30],
+  fin: [31],
 };
+
 
 const ROUNDS       = ['r32', 'r16', 'qf', 'sf', 'fin'];
 const ROUND_LABELS = { r32:'Round of 32', r16:'Round of 16', qf:'Quarterfinals', sf:'Semifinals', fin:'Final' };
@@ -364,10 +341,10 @@ function newBracket() {
 let S = defaultState();
 
 // ── Persistence ──────────────────────────────────────────────────────────
-function save() { try { localStorage.setItem('wc26_v8', JSON.stringify(S)); } catch(_) {} }
+function save() { try { localStorage.setItem('plcup_v1', JSON.stringify(S)); } catch(_) {} }
 function load() {
   try {
-    const raw = localStorage.getItem('wc26_v8');
+    const raw = localStorage.getItem('plcup_v1');
     if (raw) S = JSON.parse(raw);
   } catch(_) {}
 }
@@ -464,7 +441,7 @@ function genBracket() {
 }
 
 function regenBracket() {
-  if (!confirm('Reset all picks? Confirmed results will stay, your predictions will be cleared.')) return;
+  if (!confirm('Reset all your picks? The bracket draw will be restored.')) return;
   genBracket();
   renderBracket();
 }
@@ -689,7 +666,7 @@ function undoChampion() {
 // RESET
 // ════════════════════════════════════════════════════════════════════════
 function resetAll() {
-  if (!confirm('Reset everything? All your picks will be cleared and the official bracket restored.')) return;
+  if (!confirm('Reset everything? All picks will be cleared and the original bracket draw restored.')) return;
   S = defaultState();
   genBracket();
   document.getElementById('champBanner').classList.remove('show');
